@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "stardog.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "stardog.fullname" . }}
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ports:
+  - port: {{ .Values.ports.server }}
+    name: server
+  {{- if .Values.ports.sql }}
+  - port: {{ .Values.ports.sql }}
+    name: sql
+  {{- end }}
+  type: {{ .Values.service.type }}
+  {{- if .Values.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
+  {{- end }}
+  selector:
+    app: {{ include "stardog.fullname" . }}
+
+{{ if .Values.launchpad.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "stardog.fullname" . }}-launchpad
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "stardog.fullname" . }}
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ports:
+  - port: 8080
+  type: {{ .Values.launchpad.service.type }}
+  {{- if .Values.launchpad.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.launchpad.service.loadBalancerIP }}
+  {{- end }}
+  selector:
+    app: {{ include "stardog.fullname" . }}-launchpad
+{{ end }}
+
+{{ if .Values.proxysql.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "proxysql.fullname" . }}-bi-server
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval: '10'
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+    service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingress.url }}-bi-server.{{ .Values.ingress.dnsZone }}
+  labels:
+    app: {{ include "proxysql.fullname" . }}-bi-server
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+spec:
+  selector:
+    app: proxysql
+  type: LoadBalancer
+  ports:
+  - port: 5806
+    name: bi
+{{ end }}

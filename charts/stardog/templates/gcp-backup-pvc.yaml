@@ -1,0 +1,27 @@
+{{- if .Values.backup.enabled -}}
+{{- if eq .Values.backup.provider "gcp" -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "stardog.fullname" . }}-gcpfile-bck-pvc
+  namespace: {{ include "stardog.namespace" . }}
+  annotations:
+    pv.beta.kubernetes.io/gid: "{{ .Values.securityContext.runAsUser }}"
+    volume.beta.kubernetes.io/mount-options: "uid={{ .Values.securityContext.runAsUser }},gid={{ .Values.securityContext.fsGroup  }}"
+  labels:
+    helm.sh/chart: {{ include "stardog.chart" . }}
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: {{ include "stardog.fullname" . }}-gcpfile-bck-pv
+  resources:
+    requests:
+      storage: {{ .Values.backup.gcp.storage.capacity }}
+{{- end }}
+{{- end }}

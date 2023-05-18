@@ -1,0 +1,128 @@
+{{ if .Values.launchpad.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "stardog.fullname" . }}-launchpad
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: client
+spec:
+  replicas: 1
+  spec:
+  selector:
+    matchLabels:
+      app: {{ include "stardog.fullname" . }}-launchpad
+  template:
+    metadata:
+      labels:
+        app: {{ include "stardog.fullname" . }}-launchpad
+    spec:
+# {{ if .Values.securityContext.enabled }}
+#       securityContext:
+#         runAsUser: {{ .Values.securityContext.runAsUser }}
+#         runAsGroup: {{ .Values.securityContext.runAsGroup }}
+#         fsGroup: {{ .Values.securityContext.fsGroup  }}
+# {{ end }}
+      containers:
+        - name: launchpad
+          image: "{{ .Values.launchpad.image.registry }}/{{ .Values.launchpad.image.repository }}:{{ .Values.launchpad.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.launchpad.image.pullPolicy }}
+          ports:
+            - name: apps
+              containerPort: 8080
+              protocol: TCP
+          env:
+{{ toYaml .Values.launchpad.env | indent 10 }}  
+          volumeMounts:
+          - mountPath: "/jwk/private-key.key"
+            name: private-public-key
+            subPath: private-key.key
+          - mountPath: "/jwk/public-key.pub"
+            name: private-public-key
+            subPath: public-key.pub
+      volumes:
+      - name: private-public-key
+        configMap:
+          name: private-public-key-cfgmap
+      # - name: public-key
+      #   configMap:
+      #     name: public-key-cfgmap
+        
+{{ end }}
+
+
+{{ if .Values.proxysql.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "proxysql.fullname" . }}
+  labels:
+    {{- include "proxysql.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: proxysql
+  template:
+    metadata:
+      labels:
+        app: proxysql
+    spec:
+      imagePullSecrets:
+        - name: {{ .Release.Name }}-image-pull-secret
+      securityContext:
+        # proxysql userid the container is fixed at 999
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+        - name: proxysql
+          image: "{{ .Values.proxysql.image.repository }}:{{ .Values.proxysql.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.proxysql.image.pullPolicy }}
+          ports:
+            - name: bi
+              containerPort: 5806
+              protocol: TCP
+          volumeMounts:
+            - name: {{ include "proxysql.fullname" . }}-cnf-vol
+              mountPath: /etc/proxysql.cnf
+              subPath: proxysql.cnf
+        - name: proxyconf
+          image: "{{ .Values.proxysql.confImage.repository }}:{{ .Values.proxysql.confImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.proxysql.image.pullPolicy }}
+          command:
+            - /usr/local/bin/cloud-proxysql
+            - --k8s
+          volumeMounts:
+            - name:  {{ include "proxysql.fullname" . }}-proxyconf-config-vol
+              mountPath: /etc/proxyconf.yaml
+              subPath: proxyconf.yaml
+            - name: {{ include "stardog.fullname" . }}-password
+              mountPath: /etc/stardog-password
+              readOnly: true
+      volumes:
+        - name: {{ include "proxysql.fullname" . }}-cnf-vol
+          configMap:
+            name:  {{ include "proxysql.fullname" . }}-cnf
+            items:
+              - key: proxysql.cnf
+                path: proxysql.cnf
+        - name: {{ include "stardog.fullname" . }}-password
+          secret:
+            secretName: {{ include "stardog.fullname" . }}-password
+            items:
+              - key: password
+                path: adminpw
+                mode: 444
+        - name: {{ include "proxysql.fullname" . }}-proxyconf-config-vol
+          configMap:
+            name:  {{ include "proxysql.fullname" . }}-proxyconf-config
+            items:
+              - key: proxyconf.yaml
+                path: proxyconf.yaml
+{{ end }}
