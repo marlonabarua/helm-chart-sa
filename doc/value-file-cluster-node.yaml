@@ -35,7 +35,7 @@ oauth:
     keyUrl: "https://launchpad.helm.sd-testlab.com/.well-known/jwks.json"
     autoCreateUsers: true
     allowedGroupIdentifiers:
-    - azure.microsoft.com/ff24ca66-bbaa-4def-8acf-43f2635ada42
+    - azure.microsoft.com/{ADD-AZUER-SUBSCRITION}
 
 stardogProperties: |
   security.named.graphs=true
@@ -69,16 +69,11 @@ jvm:
   maxHeap: 2g
   directMem: 1g
 
-# Java args for Stardog server
-# javaArgs: "XX:ActiveProcessorCount=2"
-
-
 securityContext:
   enabled: true
   runAsUser: 1000
   runAsGroup: 1000
   fsGroup: 1000
-
 
 nodeSelector:
   target: stardog
@@ -109,7 +104,6 @@ zookeeper:
     - key: workload
       value: "zookeeper"
       effect: NoSchedule
-
 
 ingress:
   enabled: true
@@ -148,39 +142,44 @@ launchpad:
     tag: '1.0'
     pullPolicy: Always
   env:
-# URL to access the application
     - name: BASE_URL
       value: https://launchpad.helm.sd-testlab.com
-# required if BASE_URL is not https
     - name: SECURE
       value: "false"
     - name: K8S_DEPLOYMENT
       value: "true"
-# enable Azure AD Auth
     - name: AZURE_AUTH_ENABLED
       value: "true"
-# used to sign cookies
     - name: COOKIE_SECRET
       value: some-secretX
     - name: STARDOG_INTERNAL_ENDPOINT
       value: https://stardog.helm.sd-testlab.com
     - name: STARDOG_EXTERNAL_ENDPOINT
       value: https://stardog.helm.sd-testlab.com
-# allow users to sign in with Stardog username/password
     - name: PASSWORD_AUTH_ENABLED
       value: "true"
-# modify the name of the application for the login form
     - name: FRIENDLY_NAME
       value: Stardog Applications
     - name: AZURE_CLIENT_ID
-      value: 93226bf2-31f4-40b7-931d-5db5bb0d8d20  #<client-id>
+      value:  #<AZURE_CLIENT_ID> 
     - name: AZURE_CLIENT_SECRET
-      value: pSb8Q~adlGRGhKqj26LPU8pw5HOwd5W4.Ojltaff
+      value:  #<AZURE_CLIENT_SECRET>
     - name: AZURE_TENANT
-      value: ff24ca66-bbaa-4def-8acf-43f2635ada42
-# A public/private RSA key pair used to sign/verify JWTs issued by Launchpad
+      value: #<AZURE_TENANT>
     - name: JWK_LOCATION
       value: /jwk
+
+
+# These public/private keys are only for testing and should not be used in production! 
+# To Generate New Key Pair you can use one of these methods
+
+# openssl genrsa -out privatekey.pem.key 4096
+# openssl rsa -in privatekey.pem.key -out publickey.pem.pub -outform PEM -pubout
+
+#Or
+
+# ssh-keygen -t rsa -b 2048 -m PEM -f privatekey.key   # Don't add passphrase
+# openssl rsa -in jwtRS256.key -pubout -outform PEM -out publickey.key.pub
 
   privatekey: |
     -----BEGIN RSA PRIVATE KEY-----

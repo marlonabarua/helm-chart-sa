@@ -145,7 +145,6 @@ launchpad:
     tag: '1.0'
     pullPolicy: Always
   env:
-# URL to access the application
     - name: BASE_URL
       value: https://launchpad.helm.sd-testlab.com
     - name: SECURE
@@ -173,6 +172,7 @@ launchpad:
     - name: JWK_LOCATION
       value: /jwk
 
+
 # These public/private keys are only for testing and should not be used in production!
 # To Generate New Key Pair you can use one of these methods
 
@@ -183,8 +183,6 @@ launchpad:
 
 # ssh-keygen -t rsa -b 2048 -m PEM -f privatekey.key   # Don't add passphrase
 # openssl rsa -in jwtRS256.key -pubout -outform PEM -out publickey.key.pub
-
-
 
   privatekey: |
     -----BEGIN RSA PRIVATE KEY-----
