@@ -1,0 +1,113 @@
+{{ if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-ingress-stardog
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{ with .Values.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{ end }}
+spec:
+  {{ if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className | quote }}
+  {{ end }}
+  rules:
+  - host: {{ .Values.ingress.server.url }}.{{ .Values.ingress.dnsZone }}
+    http:
+      paths:
+      - path: {{ .Values.ingress.server.path }}  
+        pathType: {{ .Values.ingress.server.pathtype }} 
+        backend:
+          service:
+            name: {{ include "stardog.fullname" . }}
+            port:
+              number: {{ .Values.ports.server }}
+{{ if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+      - {{ .Values.ingress.server.url }}.{{ .Values.ingress.dnsZone }}
+      secretName: tls-secret-{{ .Release.Name }}-ingress
+{{ end }}
+{{ end }}
+
+
+{{ if .Values.ports.sql }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-ingress-sql
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{ with .Values.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{ end }}
+spec:
+  {{ if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className | quote }}
+  {{ end }}
+  rules:
+  - host: {{ .Values.ingress.sql.url }}.{{ .Values.ingress.dnsZone }}
+    http:
+      paths:
+      - path: {{ .Values.ingress.sql.path }} 
+        pathType: {{ .Values.ingress.sql.pathtype }}
+        backend:
+          service:
+            name: {{ include "stardog.fullname" . }}
+            port:
+              number: {{ .Values.ports.sql }}
+{{ if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+      - {{ .Values.ingress.sql.url }}.{{ .Values.ingress.dnsZone }}
+      secretName: tls-secret-{{ .Release.Name }}-sql
+{{ end }}
+{{ end }}
+
+{{ if .Values.launchpad.enabled  }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-ingress-launcpad
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{ with .Values.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{ end }}
+spec:
+  {{ if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className | quote }}
+  {{ end }}
+  rules:
+  - host: {{ .Values.ingress.launchpad.url }}.{{ .Values.ingress.dnsZone }}
+    http:
+      paths:
+      - path: {{ .Values.ingress.launchpad.path }} 
+        pathType: {{ .Values.ingress.launchpad.pathtype }}
+        backend:
+          service:
+            name: {{ include "stardog.fullname" . }}-launchpad
+            port:
+              number: 8080
+{{ if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+      - {{ .Values.ingress.launchpad.url }}.{{ .Values.ingress.dnsZone }}
+      secretName: tls-secret-{{ .Release.Name }}-launchpad
+{{ end }}
+{{ end }}

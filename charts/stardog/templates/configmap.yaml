@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "stardog.fullname" . }}-log4j
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+data: {{ if .Values.log4jConfig.override }}
+  log4j2.xml: {{ toJson .Values.log4jConfig.content }}{{ else }}
+  {{- (.Files.Glob "files/log4j2.xml").AsConfig | nindent 2 }}
+{{ end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "stardog.fullname" . }}-properties
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+
+data:
+  {{- (.Files.Glob "files/stardog.properties").AsConfig | nindent 2 }}
+    pack.enabled={{ .Values.cluster.enabled }}
+ {{- .Values.stardogProperties | nindent 4 }}
+    pack.zookeeper.address={{ if .Values.zookeeper.enabled }} {{- template "zkservers" . }} {{ else }} {{ .Values.zookeeper.addresses }} {{ end }}
+    {{- if .Values.oauth.enabled }}
+    jwt.conf=/var/opt/stardog/jwt.yaml
+    {{- end }}
+
+{{ if .Values.oauth.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "stardog.fullname" . }}-jwt
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+
+data:
+  jwt.yaml: |-
+    ---
+    confVersion: "1.0"
+    deploymentName: {{ include "stardog.fullname" . }}
+
+    issuers:
+      {{ .Values.oauth.azure.issuer }}:
+        audience: {{ .Values.oauth.azure.audience}}
+        usernameField: {{ .Values.oauth.azure.usernameField }}
+        autoCreateUsers: {{ .Values.oauth.azure.autoCreateUsers }}
+        allowedGroupIdentifiers: {{ .Values.oauth.azure.allowedGroupIdentifiers }}
+        algorithms:
+          RS256:
+            keyUrl: {{ .Values.oauth.azure.keyUrl }}
+{{ end }}
+---
+{{ if .Values.launchpad.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: private-public-key-cfgmap
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+data:
+  private-key.key: |
+    {{ .Values.launchpad.privatekey | nindent 4}}
+  public-key.pub: |
+    {{ .Values.launchpad.publickey | nindent 4}}
+{{ end }}
+---
