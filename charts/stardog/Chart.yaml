@@ -3,7 +3,7 @@ name: stardog
 description: Helm chart to deploy Stardog Cluster and associated services
 version: 2.1.0
 appVersion: latest
-home: https://stardog-union.github.io/helm-charts-ingress/
+home: https://stardog-union.github.io/helm-charts-sa/
 icon: https://s3.amazonaws.com/stardog-logos.public/stardog-logo.png
 maintainers:
   - name: Stardog Union

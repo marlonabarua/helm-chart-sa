@@ -33,7 +33,7 @@ spec:
       - {{ .Values.ingress.server.url }}.{{ .Values.ingress.dnsZone }}
       secretName: tls-secret-{{ .Release.Name }}-ingress
 {{ end }}
-{{ end }}
+
 
 
 {{ if .Values.ports.sql }}
@@ -110,4 +110,6 @@ spec:
       - {{ .Values.ingress.launchpad.url }}.{{ .Values.ingress.dnsZone }}
       secretName: tls-secret-{{ .Release.Name }}-launchpad
 {{ end }}
+{{ end }}
+
 {{ end }}

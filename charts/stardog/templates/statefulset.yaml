@@ -16,7 +16,7 @@ spec:
   serviceName: {{ include "stardog.fullname" . }}
   replicas: {{ .Values.replicaCount }}
   # Enable for debugging purpose only, usually for bringing all pods at once in a StatefulSet
-  #podManagementPolicy: {{ .Values.podManagementPolicy }}
+  podManagementPolicy: {{ .Values.podManagementPolicy }}
   template:
     metadata:
       labels:
