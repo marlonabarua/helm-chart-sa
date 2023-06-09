@@ -1,0 +1,184 @@
+# Default values for launchpad.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  #registry: puppysdacr.azurecr.io
+  repository: pupsdacr.azurecr.io/stardog/pup-launchpad
+  tag: "1.0"
+  pullPolicy: Always
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
+
+
+# capabilities:
+#   drop:
+#   - ALL
+# readOnlyRootFilesystem: true
+
+
+service:
+  type: ClusterIP
+  port: 80
+
+jwt:
+  enabled: false
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+env:
+  - name: FRIENDLY_NAME
+    value: "Stardog Applications"
+  - name: BASE_URL
+    value: https://launchpad.puppy.sd-testlab.com
+  - name: SECURE
+    value: "false"
+  - name: K8S_DEPLOYMENT
+    value: "true"
+  - name: STARDOG_INTERNAL_ENDPOINT
+    value: https://sparlq.puppy.sd-testlab.com
+  - name: STARDOG_EXTERNAL_ENDPOINT
+    value: https://sparlq.puppy.sd-testlab.com
+  - name: PASSWORD_AUTH_ENABLED
+    value: "true"
+  - name: AZURE_AUTH_ENABLED
+    value: "true"
+  - name: AZURE_CLIENT_ID
+    value: 93226bf2-31f4-40b7-931d-5db5bb0d8d20
+  - name: AZURE_CLIENT_SECRET
+    value: pSb8Q~adlGRGhKqj26LPU8pw5HOwd5W4.Ojltaff
+  - name: AZURE_TENANT
+    value: ff24ca66-bbaa-4def-8acf-43f2635ada42
+  - name: JWK_LOCATION
+    value: "/jwk"
+
+privatekey: |
+  -----BEGIN RSA PRIVATE KEY-----
+  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
+  -----END RSA PRIVATE KEY-----
+publickey: |
+  -----BEGIN PUBLIC KEY-----
+  MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAskOg/KogcSqRudvl1Spt
+  Rk20kmehc8bGYo5U4Gv48FtxR2NS2NJpRmNqFl3T/U+1uEdstbqvljcGfUe2RlQO
+  gDTxdBWySt1zV/H7YEyM2+ccqOPJjkcBTKQavvjRTxqPzS6fdR+quZvqrsK3Eose
+  C0n3e3sgzm/StpIG8GjOnvCafSISbrERHLbou4SfSKCRBAvoKQ4Ja/ACl7jZVoxw
+  ANLcunHiHQNaYM4SGfD/ZIWwArbj5WDxa4lqsgGcRxwf1dSWFPnMosVFUy2qlJdC
+  Vuk9bLqoQ0qrcqRsvFndCFRP9TsU2ORM0HRau6Ch/d7DosjDedILuO8fr18C0lkX
+  mvlJGg0KzGDLa39k7GikMJkF1o+J8mVXnW/BFC/aQjYqimgRx2rFHKEomxSPH5uj
+  +4mwKHaVIdXmTCxY461MiwdNCUOHzClF4XzeuS9ebwFhyz9i+6jeL83UjZUyU4jj
+  hNjlA4w5M4zKu/abDAd0VTTnTfaCwpv77gWVnEBUxIm/1bxd1BcTk7/OA4bZZ+B+
+  VqWbvvtv5CqQYtzwsddU96DdRKz5zt7Yzs2xprZVcsWXaML2rX5WOFskUCEMGJ2e
+  SQE1AJR8n1nNlzaw1ZBTMC3yhgh+xSTqoIEhUUZ6l94QUgtjCuUmCZswrqJqnXIH
+  RvGL7+6Hmh00hpZPSVEK81ECAwEAAQ==
+  -----END PUBLIC KEY-----
+

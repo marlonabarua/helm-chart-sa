@@ -1,0 +1,15 @@
+{{- if .Values.jwt.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "launchpad.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "launchpad.labels" . | nindent 4 }}
+data:
+  private-key.key: |
+    {{ .Values.privatekey | nindent 4}}
+  public-key.pub: |
+    {{ .Values.publickey | nindent 4}}
+
+{{- end }}

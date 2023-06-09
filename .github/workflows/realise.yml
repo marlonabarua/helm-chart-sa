@@ -31,6 +31,7 @@ jobs:
           mkdir -p .cr-release-packages
           helm dependency update charts/stardog
           helm package charts/stardog --app-version=${VERSION:1} --version=${VERSION:1} --destination=.cr-release-packages
+          helm package charts/launchpad --app-version=${VERSION:1} --version=${VERSION:1} --destination=.cr-release-packages
 
       - name: Run chart-releaser
         # switch back to helm/chart-releaser-action if this contribution is ever merged
