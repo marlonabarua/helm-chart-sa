@@ -21,12 +21,12 @@ spec:
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/managed-by: {{ .Release.Service }}
     spec:
-{{ if .Values.securityContext.enabled }}
+{{- if .Values.securityContext.enabled }}
       securityContext:
         runAsUser: {{ .Values.securityContext.runAsUser }}
         runAsGroup: {{ .Values.securityContext.runAsGroup }}
         fsGroup: {{ .Values.securityContext.fsGroup  }}
-{{ end }}
+{{- end }}
       restartPolicy: Never
       containers:
       - name: post-install-job
@@ -36,6 +36,13 @@ spec:
         - name: {{ include "stardog.fullname" . }}-password
           mountPath: /etc/stardog-password
           readOnly: true
+        resources:
+          requests:
+            memory: 250Mi
+            cpu: 300m
+          limits:
+            memory: 250Mi
+            cpu: 300m
         env:
         - name: PORT
           value: "{{ .Values.ports.server }}"

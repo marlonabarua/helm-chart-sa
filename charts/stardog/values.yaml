@@ -1,4 +1,3 @@
----
 # The namespace for Stardog resources that override the release namespace
 # namespaceOverride: stardog
 
@@ -39,7 +38,7 @@ licenseServer:
   enabled: false
   licenseType: unlimited
   url: ""
-  
+
 # The service type to use for Stardog ports
 service:
   type: LoadBalancer
@@ -52,7 +51,7 @@ ports:
   server: 5820
   sql: 5806
 
-SSL: 
+SSL:
   enabled: false
 
 # The location Stardog will use for temporary space (i.e. java.io.tmpdir).
@@ -69,7 +68,7 @@ admin:
 image:
   registry: https://registry.hub.docker.com/v2/repositories
   repository: stardog/stardog
-# Alternative config to pull from Stardog private repository
+  # Alternative config to pull from Stardog private repository
   # registry: stardog-eps-docker.jfrog.io
   # repository: stardog-eps-docker.jfrog.io/stardog
   tag: latest
@@ -90,13 +89,13 @@ tolerations: []
 
 antiAffinity: requiredDuringSchedulingIgnoredDuringExecution
 
-resources: {}
-#  requests:
-#    cpu: 1
-#    memory: 4Gi
-#  limits:
-#    cpu: 2
-#    memory: 6Gi
+resources:
+  requests:
+    cpu: 1
+    memory: 1Gi
+  limits:
+    cpu: 2
+    memory: 2Gi
 
 # Dump the json formated Stardog audit log to the console of a side car container console
 # The container will be named {{ .Release.Name }}-stardog-auditlog
@@ -175,6 +174,10 @@ zookeeper:
 
 oauth:
   enabled: false
+  roles:
+  - writer
+  - read
+  - admin
   azure:
     issuer: "http://localhost:8080"
     usernameField: username
@@ -186,21 +189,21 @@ oauth:
 
 
   google: {}
-    # When Stardog is used to create JWTs the JWTs are signed with the HMAC256 algorithm.  This
-    # requires a secret to create a cryptographically secure signature.  The "signsecret" parameter
-    # is that value that will be used for creating this signature.
-    #signsecret: do_not_use
-    #name: StardogServerJwt
-    # A proper JWT requires an "aud" field that annotates it by saying the specific JWT is for a
-    # specific service (audience).  When Stardog is used to create JWTs the signeraudience field
-    # will be used as the "aud" in the JWTs that it creates.
-    #signeraudience: stardog-cloud
-    # When using a third party identity provider like google the JWT auth token that they send back for
-    # use with Stardog includes an "aud" (audience) field.  This field is used to verify that not only
-    # does the JWT token represent that user in question but that it was created with the intention of
-    # being used by a specific "audience" which is this stardog server.  The value that google uses
-    # for this is the "client-id" of the web oauth app.
-    #googleaudience: google-client-id
+  # When Stardog is used to create JWTs the JWTs are signed with the HMAC256 algorithm.  This
+  # requires a secret to create a cryptographically secure signature.  The "signsecret" parameter
+  # is that value that will be used for creating this signature.
+  #signsecret: do_not_use
+  #name: StardogServerJwt
+  # A proper JWT requires an "aud" field that annotates it by saying the specific JWT is for a
+  # specific service (audience).  When Stardog is used to create JWTs the signeraudience field
+  # will be used as the "aud" in the JWTs that it creates.
+  #signeraudience: stardog-cloud
+  # When using a third party identity provider like google the JWT auth token that they send back for
+  # use with Stardog includes an "aud" (audience) field.  This field is used to verify that not only
+  # does the JWT token represent that user in question but that it was created with the intention of
+  # being used by a specific "audience" which is this stardog server.  The value that google uses
+  # for this is the "client-id" of the web oauth app.
+  #googleaudience: google-client-id
 
 ingress:
   enabled: false
@@ -231,50 +234,60 @@ launchpad:
   service:
     type: LoadBalancer
     annotations: {}
+  jwt:
+    enabled: false
+
+  # these allow you to configure the UID and group ID used by the container when it's running, and the fsGroup sets the group id for the volume-mounts
+  # if enabled: false, then the whole block is skipped
+  securityContext:
+    enabled: false
+    runAsUser: null
+    runAsGroup: null
+
   env:
-    - name: BASE_URL
-      value: https://launchpad.helm.sd-testlab.com
-    - name: SECURE
-      value: "false"
-    - name: K8S_DEPLOYMENT
-      value: "true"
-    - name: AZURE_AUTH_ENABLED
-      value: "true"
-    - name: COOKIE_SECRET
-      value: some-secretX
-    - name: STARDOG_INTERNAL_ENDPOINT
-      value: https://stardog.helm.sd-testlab.com
-    - name: STARDOG_EXTERNAL_ENDPOINT
-      value: https://stardog.helm.sd-testlab.com
-    - name: PASSWORD_AUTH_ENABLED
-      value: "true"
-    - name: FRIENDLY_NAME
-      value: Stardog Applications
-    - name: AZURE_CLIENT_ID
-      value:  #<AZURE_CLIENT_ID> 
-    - name: AZURE_CLIENT_SECRET
-      value:  #<AZURE_CLIENT_SECRET>
-    - name: AZURE_TENANT
-      value: #<AZURE_TENANT>
-    - name: JWK_LOCATION
-      value: /jwk
+  - name: COOKIE_SECRET
+    value: some-secretX
+  - name: K8S_DEPLOYMENT
+    value: "true"
+  - name: BASE_URL
+    value: https://launchpad.helm.sd-testlab.com
+  - name: PASSWORD_AUTH_ENABLED
+    value: "true"
+  - name: FRIENDLY_NAME
+    value: Stardog Applications
+  - name: STARDOG_INTERNAL_ENDPOINT
+    value: https://stardog.helm.sd-testlab.com
+  - name: STARDOG_EXTERNAL_ENDPOINT
+    value: https://stardog.helm.sd-testlab.com
+  - name: SECURE
+    value: "false"
+    # - name: AZURE_AUTH_ENABLED
+    #   value: "false"
+    # - name: AZURE_CLIENT_ID
+    #   value:  #<AZURE_CLIENT_ID> 
+    # - name: AZURE_CLIENT_SECRET
+    #   value:  #<AZURE_CLIENT_SECRET>
+    # - name: AZURE_TENANT
+    #   value: #<AZURE_TENANT>
+    # - name: JWK_LOCATION
+    #   value: /jwk
 
 
-# These public/private keys are only for testing and should not be used in production! 
-# To Generate New Key Pair you can use one of these methods
+  # These public/private keys are only for testing and should not be used in production! 
+  # To Generate New Key Pair you can use one of these methods
 
-# openssl genrsa -out privatekey.pem.key 4096
-# openssl rsa -in privatekey.pem.key -out publickey.pem.pub -outform PEM -pubout
+  # openssl genrsa -out privatekey.pem.key 4096
+  # openssl rsa -in privatekey.pem.key -out publickey.pem.pub -outform PEM -pubout
 
-#Or
+  #Or
 
-# ssh-keygen -t rsa -b 2048 -m PEM -f privatekey.key   # Don't add passphrase
-# openssl rsa -in jwtRS256.key -pubout -outform PEM -out publickey.key.pub
+  # ssh-keygen -t rsa -b 2048 -m PEM -f privatekey.key   # Don't add passphrase
+  # openssl rsa -in jwtRS256.key -pubout -outform PEM -out publickey.key.pub
 
 
-  privatekey: | 
+  privatekey: |
     ADD RSA PRIVATE KEY
-  publickey: | 
+  publickey: |
     ADD RSA PUBLIC KEY
 
 

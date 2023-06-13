@@ -21,12 +21,12 @@ spec:
       labels:
         app: {{ include "stardog.fullname" . }}-launchpad
     spec:
-# {{ if .Values.securityContext.enabled }}
+# {{- if .Values.securityContext.enabled }}
 #       securityContext:
 #         runAsUser: {{ .Values.securityContext.runAsUser }}
 #         runAsGroup: {{ .Values.securityContext.runAsGroup }}
 #         fsGroup: {{ .Values.securityContext.fsGroup  }}
-# {{ end }}
+# {{- end }}
       containers:
         - name: launchpad
           image: "{{ .Values.launchpad.image.registry }}/{{ .Values.launchpad.image.repository }}:{{ .Values.launchpad.image.tag | default .Chart.AppVersion }}"
@@ -36,7 +36,8 @@ spec:
               containerPort: 8080
               protocol: TCP
           env:
-{{ toYaml .Values.launchpad.env | indent 10 }}  
+{{ toYaml .Values.launchpad.env | indent 10 }} 
+{{- if .Values.launchpad.jwt.enabled}}
           volumeMounts:
           - mountPath: "/jwk/private-key.key"
             name: private-public-key
@@ -51,11 +52,10 @@ spec:
       # - name: public-key
       #   configMap:
       #     name: public-key-cfgmap
-        
-{{ end }}
+{{- end }}        
+{{- end }}
 
-
-{{ if .Values.proxysql.enabled }}
+{{- if .Values.proxysql.enabled }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -125,4 +125,4 @@ spec:
             items:
               - key: proxyconf.yaml
                 path: proxyconf.yaml
-{{ end }}
+{{- end }}
