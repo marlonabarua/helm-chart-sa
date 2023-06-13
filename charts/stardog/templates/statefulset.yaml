@@ -129,10 +129,12 @@ spec:
         - name: {{ include "stardog.fullname" . }}-log4j-vol
           mountPath: /var/opt/stardog/log4j2.xml
           subPath: log4j2.xml
+          readOnly: true
        {{- if .Values.oauth.enabled }}
         - name: {{ include "stardog.fullname" . }}-jwt
           mountPath: /var/opt/stardog/jwt.yaml
           subPath: jwt.yaml
+          readOnly: true
        {{- end }}
         {{- if .Values.backup.enabled }}
         {{- if eq .Values.backup.provider "azure" }}
