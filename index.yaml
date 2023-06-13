@@ -2,6 +2,22 @@ apiVersion: v1
 entries:
   launchpad:
   - apiVersion: v2
+    appVersion: 2.0.13
+    created: "2023-06-13T17:29:42.950223691Z"
+    description: Helm chart to deploy Stardog Launchpad and associated services
+    digest: 16bd79dc4fa02c47d8ef12f484faa2b96996477bfad7db7564fdd7a7daa87b9c
+    home: https://stardog-union.github.io/helm-charts-sa/
+    icon: https://s3.amazonaws.com/stardog-logos.public/stardog-logo.png
+    maintainers:
+    - email: tech@stardog.com
+      name: Stardog Union
+      url: https://www.stardog.com
+    name: launchpad
+    type: application
+    urls:
+    - https://github.com/stardog-union/helm-chart-sa/releases/download/launchpad-2.0.13/launchpad-2.0.13.tgz
+    version: 2.0.13
+  - apiVersion: v2
     appVersion: 2.0.12
     created: "2023-06-13T04:18:03.280284459Z"
     description: Helm chart to deploy Stardog Launchpad and associated services
@@ -34,6 +50,26 @@ entries:
     - https://github.com/stardog-union/helm-chart-sa/releases/download/launchpad-2.0.11/launchpad-2.0.11.tgz
     version: 2.0.11
   stardog:
+  - apiVersion: v2
+    appVersion: 2.0.13
+    created: "2023-06-13T17:29:43.131530774Z"
+    dependencies:
+    - condition: zookeeper.enabled
+      name: zookeeper
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 11.3.1
+    description: Helm chart to deploy Stardog Cluster and associated services
+    digest: 3dc965ce00eaf18a92de17d636675745e762c00fc094bccb04b2019f0b09fe10
+    home: https://stardog-union.github.io/helm-charts-sa/
+    icon: https://s3.amazonaws.com/stardog-logos.public/stardog-logo.png
+    maintainers:
+    - email: tech@stardog.com
+      name: Stardog Union
+      url: https://www.stardog.com
+    name: stardog
+    urls:
+    - https://github.com/stardog-union/helm-chart-sa/releases/download/stardog-2.0.13/stardog-2.0.13.tgz
+    version: 2.0.13
   - apiVersion: v2
     appVersion: 2.0.12
     created: "2023-06-13T04:18:03.438993625Z"
@@ -134,4 +170,4 @@ entries:
     urls:
     - https://github.com/stardog-union/helm-chart-sa/releases/download/stardog-2.0.8/stardog-2.0.8.tgz
     version: 2.0.8
-generated: "2023-06-13T04:18:03.439020126Z"
+generated: "2023-06-13T17:29:43.131557174Z"
