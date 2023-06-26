@@ -40,20 +40,25 @@ spec:
           env:
             - name: COOKIE_SECRET
               value: {{ randAlphaNum 24 | quote }}
+            {{- if .Values.jwt.enabled }}
+            - name: JWK_LOCATION
+              value: "/jwt"
+            {{- end }}
             {{- range $.Values.env }} 
             - name: {{ .name }}
               value: {{ .value | quote}}
             {{- end }}
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+        {{- if .Values.jwt.enabled }}
+          volumeMounts:
+          - name: {{ .Values.jwt.secretName }}
+            mountPath: "/jwt/cert.key"  
+            subPath: cert-key  
+          - name: {{ .Values.jwt.secretName }}  
+            mountPath: "/jwt/pubkey.pub" 
+            subPath: public-key
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -66,3 +71,9 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+  {{- if .Values.jwt.enabled }}
+      volumes:
+      - name: {{ .Values.jwt.secretName }}
+        secret:
+          secretName: {{ .Values.jwt.secretName }}
+  {{- end }}
