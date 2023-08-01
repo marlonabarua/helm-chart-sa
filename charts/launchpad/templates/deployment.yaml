@@ -54,10 +54,10 @@ spec:
           volumeMounts:
           - name: {{ .Values.jwt.secretName }}
             mountPath: "/jwt/cert.key"  
-            subPath: cert-key  
+            subPath: cert-key.key  
           - name: {{ .Values.jwt.secretName }}  
             mountPath: "/jwt/pubkey.pub" 
-            subPath: public-key
+            subPath: public-key.pub
         {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
