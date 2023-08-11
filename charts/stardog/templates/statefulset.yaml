@@ -159,12 +159,6 @@ spec:
           value: "-Djava.io.tmpdir={{ .Values.tmpDir }} -XX:+HeapDumpOnOutOfMemoryError -Xms{{ .Values.jvm.minHeap }} -Xmx{{ .Values.jvm.maxHeap }} -XX:MaxDirectMemorySize={{ .Values.jvm.directMem }} {{ .Values.javaArgs }}"
         - name: STARDOG_TMP_PATH
           value: "{{ .Values.tmpDir }}"
-        - name: LICENSE_SERVER_ENABLED
-          value: "{{ .Values.licenseServer.enabled }}"
-        - name: LICENSE_SERVER
-          value: {{ .Values.licenseServer.url}}
-        - name: LICENSE_TYPE
-          value: {{ .Values.licenseServer.licenseType }}
         - name: LICENSE_NAME
           value: {{ .Release.Namespace }}
         command:
@@ -173,7 +167,6 @@ spec:
         - |
           set -ex
           {{ .Files.Get "files/utils.sh" | indent 10 }}
-          get_license "${LICENSE_SERVER_ENABLED}" "${LICENSE_SERVER}" "${LICENSE_TYPE}" "${LICENSE_NAME}" "${STARDOG_LICENSE_PATH}"
           make_temp ${STARDOG_TMP_PATH}
           {{- if .Values.SSL.enabled }}
           /opt/stardog/bin/stardog-admin server start --foreground --port ${PORT} --home ${STARDOG_HOME} --require-ssl
