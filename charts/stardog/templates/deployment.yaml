@@ -12,7 +12,6 @@ metadata:
     app.kubernetes.io/component: client
 spec:
   replicas: 1
-  spec:
   selector:
     matchLabels:
       app: {{ include "stardog.fullname" . }}-launchpad
