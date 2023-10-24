@@ -26,6 +26,8 @@ spec:
 #         runAsGroup: {{ .Values.securityContext.runAsGroup }}
 #         fsGroup: {{ .Values.securityContext.fsGroup  }}
 # {{- end }}
+      imagePullSecrets:
+{{ toYaml .Values.launchpad.imagePullSecrets | indent 6 }}
       containers:
         - name: launchpad
           image: "{{ .Values.launchpad.image.registry }}/{{ .Values.launchpad.image.repository }}:{{ .Values.launchpad.image.tag | default .Chart.AppVersion }}"
@@ -35,7 +37,7 @@ spec:
               containerPort: 8080
               protocol: TCP
           env:
-{{ toYaml .Values.launchpad.env | indent 10 }} 
+{{ toYaml .Values.launchpad.env | indent 10 }}
 {{- if .Values.launchpad.jwt.enabled}}
           volumeMounts:
           - mountPath: "/jwk/private-key.key"
@@ -51,7 +53,7 @@ spec:
       # - name: public-key
       #   configMap:
       #     name: public-key-cfgmap
-{{- end }}        
+{{- end }}
 {{- end }}
 
 {{- if .Values.proxysql.enabled }}
