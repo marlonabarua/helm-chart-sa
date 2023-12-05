@@ -1,0 +1,90 @@
+replicaCount: 3
+
+cluster:
+  enabled: true
+
+waitForStartSeconds: 120
+podManagementPolicy: Parallel
+
+image:
+  repository: pupsdacr.azurecr.io/stardog/pup-stardog
+  tag: '1.0'
+  pullPolicy: Always
+
+# The storage class and size to use for Stardog home volumes for the pods
+# Use the storage class type for cloud type. 
+persistence:
+  storageClass: default
+  size: 5Gi
+
+resources:
+ requests:
+   cpu: 3400m
+   memory: Gi
+ limits:
+   cpu: 4
+   memory: 13Gi
+
+service:
+  type: LoadBalancer
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-tcp-idle-timeout: "30"
+
+stardogProperties: |
+  security.named.graphs=true
+  sql.server.enabled=true
+  query.all.graphs=true
+  spatial.use.jts=true
+  metrics.reporter=jmx
+  metrics.jvm.enabled=true
+  metrics.jmx.remote.access=true
+  query.timeout=1h
+  logging.slow_query.enabled=true
+  logging.slow_query.time=15m
+  logging.slow_query.type=text
+  logging.slow_query.rotation.type=time
+  logging.slow_query.rotation.interval=7d
+  logging.audit.enabled=true
+  logging.audit.type=binary
+  logging.audit.rotation.type=time
+  logging.audit.rotation.interval=7d
+  storage.starrocks.enable_snmp=true
+  storage.statistics.timing=true
+  jwt.sign.with.password=false
+  jwt.disable=false
+
+ports:
+  server: 5820
+  sql: 5806
+
+jvm:
+  minHeap: 5g
+  maxHeap: 5g
+  directMem: 10g
+# Java args for Stardog server
+javaArgs: "-XX:ActiveProcessorCount=3"
+
+
+securityContext:
+  enabled: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+livenessProbe:
+  initialDelaySeconds: 180
+
+readinessProbe:
+  initialDelaySeconds: 180
+
+zookeeper:
+  enabled: true
+  replicaCount: 3
+  persistence:
+    enabled: true
+    storageClass: default
+    size: 5Gi
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: 1
