@@ -1,0 +1,55 @@
+{{- if and .Values.launchpad.enabled .Values.launchpad.certmanager.enabled}}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+    name: {{ include "stardog.fullname" . }}-launchpad
+    namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+spec:
+  secretName: {{ printf "tls-secret-%s-launchpad" .Release.Name }}
+  duration: {{- .Values.launchpad.certmanager.duration | quote }}
+  renewBefore: {{- .Values.launchpad.certmanager.renewBefore | quote }}
+  {{- if or (not .Values.launchpad.certmanager.commonName) (eq (len .Values.launchpad.certmanager.commonName) 0) }} 
+  commonName: {{- include "launchpad.host" }}
+  dnsNames: 
+  - {{- include "launchpad.host" }}
+  {{ else }}
+  commonName: {{ .Values.launchpad.certmanager.commonName }}
+  dnsNames: {{ .Values.launchpad.certmanager.dnsNames }}
+  {{ end }}
+  issuerRef:
+    name: {{- .Values.launchpad.certmanager.issuerRef.name | -}} letsencrypt-staging # or letsencrypt-production for the production issuer
+    kind: ClusterIssuer
+{{- end}}
+---
+{{- if and .Values.stardog.enabled .Values.stardog.certmanager.enabled}}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+    name: {{ include "stardog.fullname" . }}-stardog
+    namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+spec:
+  secretName: {{ printf "tls-secret-%s-stardog" .Release.Name }}
+  duration: {{ default .Values.stardog.certmanager.duration | quote }}
+  renewBefore: {{ default .Values.stardog.certmanager.renewBefore | quote }}
+  {{- if or (not .Values.stardog.certmanager.commonName) (eq (len .Values.stardog.certmanager.commonName) 0) }} 
+  commonName: {{- include "stardog.host" }}
+  dnsNames: 
+  - {{- include "stardog.host" }}
+  {{ else }}
+  commonName: {{ .Values.stardog.certmanager.commonName }}
+  dnsNames: {{ .Values.stardog.certmanager.dnsNames }}
+  {{ end }}
+  issuerRef:
+    name: {{- .Values.stardog.certmanager.issuerRef.name -}}  letsencrypt-staging # or letsencrypt-production for the production issuer
+    kind: ClusterIssuer
+{{- end}}

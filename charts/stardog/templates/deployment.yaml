@@ -9,121 +9,157 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    app.kubernetes.io/component: client
+    app.kubernetes.io/component: server
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: {{ include "stardog.fullname" . }}-launchpad
+  replicas: {{ .Values.launchpad.replicaCount }}
   template:
     metadata:
       labels:
         app: {{ include "stardog.fullname" . }}-launchpad
+        app.kubernetes.io/name: {{ .Chart.Name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        app.kubernetes.io/version: {{ .Chart.AppVersion }}
+        app.kubernetes.io/component: server
+        stardog.com/deployname: {{ .Release.Name }}-launchpad
+        stardog.com/resource-type: stardog-apps
+      {{- with .Values.launchpad.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
-# {{- if .Values.securityContext.enabled }}
-#       securityContext:
-#         runAsUser: {{ .Values.securityContext.runAsUser }}
-#         runAsGroup: {{ .Values.securityContext.runAsGroup }}
-#         fsGroup: {{ .Values.securityContext.fsGroup  }}
-# {{- end }}
+      {{- with .Values.launchpad.imagePullSecrets }}
       imagePullSecrets:
-{{ toYaml .Values.launchpad.imagePullSecrets | indent 6 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if and .Values.launchpad.image.username .Values.launchpad.image.password }}
+      imagePullSecrets:
+          - name: {{ .Release.Name }}-launchpad-image-pull-secret
+      {{- end }}
+      serviceAccountName: {{ include "launchpad.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.launchpad.securityContext | nindent 8 }}
       containers:
-        - name: launchpad
-          image: "{{ .Values.launchpad.image.registry }}/{{ .Values.launchpad.image.repository }}:{{ .Values.launchpad.image.tag | default .Chart.AppVersion }}"
+        - name: {{ .Chart.Name }}-launchpad
+          image: {{ .Values.stardog.image.registry }}/{{ .Values.launchpad.image.repository }}:{{ .Values.launchpad.image.tag }}
           imagePullPolicy: {{ .Values.launchpad.image.pullPolicy }}
           ports:
-            - name: apps
-              containerPort: 8080
+            - name: http
+              containerPort: {{ .Values.launchpad.service.port }}
               protocol: TCP
           env:
-{{ toYaml .Values.launchpad.env | indent 10 }}
-{{- if .Values.launchpad.jwt.enabled}}
+            - name: COOKIE_SECRET
+              value: {{ randAlphaNum 24 | quote }}
+            - name: SECURE
+              value: {{ .Values.launchpad.env.SECURE | quote }}
+            - name: BASE_URL
+              value: {{- include "launchpad.protocol" . }} ://{{- include "launchpad.host" . }}
+            - name: STARDOG_INTERNAL_ENDPOINT
+              value: {{- include "stardog.protocol" . }}://{{- include "stardog.host" . }}
+            - name: STARDOG_EXTERNAL_ENDPOINT
+              value: {{- include "stardog.protocol" . }}://{{- include "stardog.host" . }}
+            - name: FRIENDLY_NAME
+              value: {{ default "Stardog Applications" .Values.launchpad.env.FRIENDLY_NAME | quote }}
+            - name: JWK_LOCATION
+              value: {{ .Values.launchpad.env.JWK_LOCATION | quote }}
+            - name: JWT_ISSUER
+              value: {{ .Values.launchpad.env.JWT_ISSUER | quote }}
+            - name: K8S_DEPLOYMENT
+              value: {{ .Values.launchpad.env.K8S_DEPLOYMENT | quote }}
+            - name: AZURE_AUTH_ENABLED
+              value: {{ .Values.launchpad.env.AZURE_AUTH_ENABLED | quote }}
+            - name: AZURE_CLIENT_ID
+              value: {{ .Values.launchpad.env.AZURE_CLIENT_ID | quote }}
+            - name: AZURE_CLIENT_SECRET
+              value: {{ .Values.launchpad.env.AZURE_CLIENT_SECRET | quote }}
+            - name: AZURE_CLIENT_PRIVATE_KEY_FILE
+              value: {{ .Values.launchpad.env.AZURE_CLIENT_PRIVATE_KEY_FILE | quote }}
+            - name: AZURE_CLIENT_CERTIFICATE_THUMBPRINT
+              value: {{ .Values.launchpad.env.AZURE_CLIENT_CERTIFICATE_THUMBPRINT | quote }}
+            - name: AZURE_CLIENT_CERTIFICATE_FILE
+              value: {{ .Values.launchpad.env.AZURE_CLIENT_CERTIFICATE_FILE | quote }}
+            - name: AZURE_TENANT
+              value: {{ .Values.launchpad.env.AZURE_TENANT | quote }}
+            - name: AZURE_AUTH_TOKEN_TYPE
+              value: {{ .Values.launchpad.env.AZURE_AUTH_TOKEN_TYPE | quote }}
+            - name: AZURE_STARDOG_SCOPE
+              value: {{ .Values.launchpad.env.AZURE_STARDOG_SCOPE | quote }}
+            - name: GOOGLE_AUTH_ENABLED
+              value: {{ .Values.launchpad.env.GOOGLE_AUTH_ENABLED | quote }}
+            - name: GOOGLE_CLIENT_ID
+              value: {{ .Values.launchpad.env.GOOGLE_CLIENT_ID | quote }}
+            - name: GOOGLE_CLIENT_SECRET
+              value: {{ .Values.launchpad.env.GOOGLE_CLIENT_SECRET | quote }}
+            - name: KEYCLOAK_AUTH_ENABLED
+              value: {{ .Values.launchpad.env.KEYCLOAK_AUTH_ENABLED | quote }}
+            - name: KEYCLOAK_CLIENT_ID
+              value: {{ .Values.launchpad.env.KEYCLOAK_CLIENT_ID | quote }}
+            - name: KEYCLOAK_CLIENT_SECRET
+              value: {{ .Values.launchpad.env.KEYCLOAK_CLIENT_SECRET | quote }}
+            - name: KEYCLOAK_ENDPOINT
+              value: {{ .Values.launchpad.env.KEYCLOAK_ENDPOINT | quote }}
+            - name: KEYCLOAK_REALM
+              value: {{ .Values.launchpad.env.KEYCLOAK_REALM | quote }}
+            - name: KEYCLOAK_TOKEN_ROLES_CLAIM
+              value: {{ .Values.launchpad.env.KEYCLOAK_TOKEN_ROLES_CLAIM | quote }}
+            - name: PASSWORD_AUTH_ENABLED
+              value: {{ .Values.launchpad.env.PASSWORD_AUTH_ENABLED | quote }}
+            - name: SESSION_EXPIRATION
+              value: {{ .Values.launchpad.env.SESSION_EXPIRATION | quote }}
+            - name: STARDOG_SERVER_CERT_PATH
+              value: {{ .Values.launchpad.env.STARDOG_SERVER_CERT_PATH | quote }}
+            - name: STARDOG_CLIENT_CERT_PATH
+              value: {{ .Values.launchpad.env.STARDOG_CLIENT_CERT_PATH | quote }}
+            - name: STARDOG_CLIENT_CERT_PRIVATE_KEY_PATH
+              value: {{ .Values.launchpad.env.STARDOG_CLIENT_CERT_PRIVATE_KEY_PATH | quote }}
+            {{/*
+             Esto es un blucle key values
+            {{- range $key, $evar := .Values.launchpad.env }}
+            - name: {{ $key }}
+              value: {{ $evar | quote }}
+            {{- end }}
+            {{- if .Values.jwt.enabled }}
+            - name: JWK_LOCATION
+              value: "/jwt"
+            {{- end }}
+            {{- range $.Values.env }} 
+            - name: {{ .name }}
+              value: {{ .value | quote}}
+            {{- end }}
+          */}}
+          resources:
+            {{- toYaml .Values.launchpad.resources | nindent 12 }}
+{{/*        {{- if .Values.jwt.enabled }}
           volumeMounts:
-          - mountPath: "/jwk/private-key.key"
-            name: private-public-key
-            subPath: private-key.key
-          - mountPath: "/jwk/public-key.pub"
-            name: private-public-key
+          - name: {{ .Values.jwt.secretName }}
+            mountPath: "/jwt/cert.key"  
+            subPath: cert-key.key  
+          - name: {{ .Values.jwt.secretName }}  
+            mountPath: "/jwt/pubkey.pub" 
             subPath: public-key.pub
+        {{- end }}  */}}
+      {{- with .Values.launchpad.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.launchpad.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.launchpad.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{/*
+  {{- if .Values.jwt.enabled }}
       volumes:
-      - name: private-public-key
-        configMap:
-          name: private-public-key-cfgmap
-      # - name: public-key
-      #   configMap:
-      #     name: public-key-cfgmap
-{{- end }}
-{{- end }}
+      - name: {{ .Values.jwt.secretName }}
+        secret:
+          secretName: {{ .Values.jwt.secretName }}
+  {{- end }}
+*/}}
 
-{{- if .Values.proxysql.enabled }}
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {{ include "proxysql.fullname" . }}
-  labels:
-    {{- include "proxysql.labels" . | nindent 4 }}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: proxysql
-  template:
-    metadata:
-      labels:
-        app: proxysql
-    spec:
-      imagePullSecrets:
-        - name: {{ .Release.Name }}-image-pull-secret
-      securityContext:
-        # proxysql userid the container is fixed at 999
-        runAsUser: 999
-        runAsGroup: 999
-        fsGroup: 999
-      containers:
-        - name: proxysql
-          image: "{{ .Values.proxysql.image.repository }}:{{ .Values.proxysql.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.proxysql.image.pullPolicy }}
-          ports:
-            - name: bi
-              containerPort: 5806
-              protocol: TCP
-          volumeMounts:
-            - name: {{ include "proxysql.fullname" . }}-cnf-vol
-              mountPath: /etc/proxysql.cnf
-              subPath: proxysql.cnf
-        - name: proxyconf
-          image: "{{ .Values.proxysql.confImage.repository }}:{{ .Values.proxysql.confImage.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.proxysql.image.pullPolicy }}
-          command:
-            - /usr/local/bin/cloud-proxysql
-            - --k8s
-          volumeMounts:
-            - name:  {{ include "proxysql.fullname" . }}-proxyconf-config-vol
-              mountPath: /etc/proxyconf.yaml
-              subPath: proxyconf.yaml
-            - name: {{ include "stardog.fullname" . }}-password
-              mountPath: /etc/stardog-password
-              readOnly: true
-      volumes:
-        - name: {{ include "proxysql.fullname" . }}-cnf-vol
-          configMap:
-            name:  {{ include "proxysql.fullname" . }}-cnf
-            items:
-              - key: proxysql.cnf
-                path: proxysql.cnf
-        - name: {{ include "stardog.fullname" . }}-password
-          secret:
-            secretName: {{ include "stardog.fullname" . }}-password
-            items:
-              - key: password
-                path: adminpw
-                mode: 444
-        - name: {{ include "proxysql.fullname" . }}-proxyconf-config-vol
-          configMap:
-            name:  {{ include "proxysql.fullname" . }}-proxyconf-config
-            items:
-              - key: proxyconf.yaml
-                path: proxyconf.yaml
 {{- end }}
