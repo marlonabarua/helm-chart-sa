@@ -1,3 +1,4 @@
+{{- if .Values.stardog.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -12,7 +13,6 @@ metadata:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": "-5"
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-
 spec:
   template:
     metadata:
@@ -21,17 +21,13 @@ spec:
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/managed-by: {{ .Release.Service }}
     spec:
-{{- if .Values.securityContext.enabled }}
       securityContext:
-        runAsUser: {{ .Values.securityContext.runAsUser }}
-        runAsGroup: {{ .Values.securityContext.runAsGroup }}
-        fsGroup: {{ .Values.securityContext.fsGroup  }}
-{{- end }}
+        {{- toYaml .Values.stardog.securityContext | nindent 8 }}
       restartPolicy: Never
       containers:
       - name: post-install-job
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
-        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.stardog.image.pullPolicy }}
+        image: {{ .Values.stardog.image.registry }}/{{ .Values.stardog.image.repository }}:{{ .Values.stardog.image.tag }}
         volumeMounts:
         - name: {{ include "stardog.fullname" . }}-password
           mountPath: /etc/stardog-password
@@ -45,19 +41,31 @@ spec:
             cpu: 300m
         env:
         - name: PORT
-          value: "{{ .Values.ports.server }}"
+          value: "{{ .Values.stardog.ports.server }}"
         - name: HOST
           value: "{{ include "stardog.fullname" . }}.{{ .Release.Namespace }}"
+        - name: PROTOCOL
+        {{ if .Values.stardog.ssl.enabled }}
+          value: "https"
+        {{ else }}
+          value: "http"
+        {{- end }}
         command:
         - /bin/bash
         - -c
         - |
           set -ex
           {{ .Files.Get "files/utils.sh" | indent 10 }}
-          wait_for_start ${HOST} ${PORT}
-          change_pw ${HOST} ${PORT}
+          wait_for_start ${HOST} ${PORT} ${PROTOCOL}
+          change_pw ${HOST} ${PORT} ${PROTOCOL}
+      {{- with .Values.stardog.image.pullSecrets }}
       imagePullSecrets:
-      - name: {{ .Release.Name }}-image-pull-secret
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if and .Values.stardog.image.username .Values.stardog.image.password }}
+      imagePullSecrets:
+          - name: {{ .Release.Name }}-image-pull-secret
+      {{- end }}
       volumes:
       - name: {{ include "stardog.fullname" . }}-password
         secret:
@@ -66,3 +74,4 @@ spec:
             - key: password
               path: adminpw
               mode: 444
+{{- end }}

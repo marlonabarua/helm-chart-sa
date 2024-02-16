@@ -1,0 +1,125 @@
+
+stardog:
+  enabled: true
+
+  cluster:
+    enabled: true
+    replicaCount: 3
+
+  service:
+    type: ClusterIP
+
+  tls: 
+    enabled: true
+    internal:
+      enabled: true
+     
+    
+  certmanager: 
+    enabled: true
+    email: "marlon.garcia@stardog.com"
+    commonName: "sparql.test.sd-testlab.com" 
+    dnsNames: 
+    - "sparql.test.sd-testlab.com" 
+
+  jwt:
+    enabled: true
+    data: |
+      confVersion: "1.0"
+      deploymentName: "Stardog "
+      issuers:
+        https://launchpad.test.sd-testlab.com:
+          audience: https://sparql.test.sd-testlab.com
+          usernameField: username
+          autoCreateUsers: True
+          allowedGroupIdentifiers: 
+            - azure.microsoft.com/ff24ca66-bbaa-4def-8acf-43f2635ada42
+          algorithms:
+            RS256:
+              keyUrl: https://launchpad.test.sd-testlab.com/.well-known/jwks.json
+
+  ingress:
+    enabled: true
+    className: "nginx" 
+    url: "test.sd-testlab.com" # The URL for the ingress
+    path: "/" # The path for the ingress
+    pathtype: "Prefix" # The path type (e.g., Prefix, Exact)
+    tls:
+      enabled: true
+
+  ports:
+    server: 5820
+    sql: 5806
+
+  image:
+    registry: stardog.azurecr.io
+    repository: sa-lab-stardog/stardog
+    tag: latest
+    username: helm-stardog
+    password: "uhdd7/iwy9nHf9b8mDWWHx0JsNsyTVh6d0h/Zl9kAz+ACRBtLFVf"
+
+  stardogProperties: |
+    pack.node.join.retry.count=15
+    pack.node.join.retry.delay=1m
+    security.named.graphs=true
+    sql.server.enabled=true
+    query.all.graphs=true
+    spatial.use.jts=true
+    metrics.reporter=jmx
+    metrics.jvm.enabled=true
+    metrics.jmx.remote.access=true
+    query.timeout=1h
+    logging.slow_query.enabled=true
+    logging.slow_query.time=15m
+    logging.slow_query.type=text
+    logging.slow_query.rotation.type=time
+    logging.slow_query.rotation.interval=7d
+    logging.audit.enabled=true
+    logging.audit.type=binary
+    logging.audit.rotation.type=time
+    logging.audit.rotation.interval=7d
+    storage.starrocks.enable_snmp=true
+    storage.statistics.timing=true
+    jwt.sign.with.password=false
+
+
+launchpad:
+  enabled: true
+  image:
+    registry: stardog.azurecr.io
+    repository: sa-lab-stardog/launchpad
+    tag: latest
+    username: helm-stardog
+    password: "uhdd7/iwy9nHf9b8mDWWHx0JsNsyTVh6d0h/Zl9kAz+ACRBtLFVf"
+
+  tls: 
+    enabled: true
+    internal:
+      enabled: true
+
+  certmanager: 
+    enabled: true
+    email: "marlon.garcia@stardog.com"
+    commonName: "launchpad.test.sd-testlab.com" 
+    dnsNames: 
+    - "launchpad.test.sd-testlab.com" 
+
+  ingress:
+    enabled: true
+    annotations:
+    className: "nginx" 
+    url: "test.sd-testlab.com" # The URL for the ingress
+    path: "/" # The path for the ingress
+    pathtype: "Prefix" # The path type (e.g., Prefix, Exact)
+    tls:
+      enabled: true
+
+  env: 
+    FRIENDLY_NAME: "Stardog Applications Cluster"
+    AZURE_AUTH_ENABLED: "true"
+    AZURE_TENANT: "ff24ca66-bbaa-4def-8acf-43f2635ada42"
+    AZURE_CLIENT_ID: "93226bf2-31f4-40b7-931d-5db5bb0d8d20"
+    AZURE_CLIENT_SECRET: "Jhw8Q~JC.ILIcMjp3IHIrNTLTGASRl4BQrWjIcor"
+
+zookeeper:
+  enabled: true

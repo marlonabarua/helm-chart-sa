@@ -9,12 +9,29 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-data: {{- if .Values.stardog.log4jConfig.override }}
-  log4j2.xml: {{ toJson .Values.stardog.log4jConfig.content }}{{- else }}
-  {{ (.Files.Glob "files/log4j2.xml").AsConfig | nindent 2 }}
-  {{- end }}
+data: {{ if .Values.stardog.log4jConfig.override }}
+  log4j2.xml: {{ toJson .Values.stardog.log4jConfig.content }}{{ else }}
+  {{- (.Files.Glob "files/log4j2.xml").AsConfig | nindent 2 }}
+{{ end }}
+{{- end }}
+{{- if and .Values.stardog.enabled .Values.stardog.jwt.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "stardog.fullname" . }}-jwt
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+data:
+  jwt.yaml: |-
+  {{- .Values.stardog.jwt.data | nindent 4 }}
 {{- end }}
 {{- if .Values.stardog.enabled }}
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -27,25 +44,11 @@ metadata:
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
 data:
   {{- (.Files.Glob "files/stardog.properties").AsConfig | nindent 2 }}
-  pack.enabled={{ .Values.stardog.cluster.enabled | quote }}
-  {{- .Values.stardog.stardogProperties | nindent 2 }}
-  pack.zookeeper.address={{ if .Values.zookeeper.enabled }} {{- template "zkservers" . }} {{ else }} {{ .Values.zookeeper.addresses }} {{ end }}
-  {{- if .Values.stardog.jwt.enabled }}
-  jwt.conf=/var/opt/stardog/jwt.yaml
-  {{- end }}
-{{ end }}
-{{ if and .Values.stardog.enabled .Values.stardog.jwt.enabled -}}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{- include "stardog.fullname" . -}}-jwt
-  namespace: {{ .Release.Namespace }}
-  labels:
-    app.kubernetes.io/name: {{ .Chart.Name }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
-data:
-  jwt.yaml: |
-  {{ .Values.stardog.jwt.data | nindent 4 }}
-{{ end }}
+    pack.enabled={{ .Values.stardog.cluster.enabled }}
+ {{- .Values.stardog.stardogProperties | nindent 4 }}
+    pack.zookeeper.address={{ if .Values.zookeeper.enabled }} {{- template "zkservers" . }} {{ else }} {{ .Values.zookeeper.addresses }} {{ end }}
+    {{- if .Values.stardog.jwt.enabled }}
+    jwt.conf=/var/opt/stardog/jwt.yaml
+    jwt.disable=false
+    {{- end }}
+{{- end }}

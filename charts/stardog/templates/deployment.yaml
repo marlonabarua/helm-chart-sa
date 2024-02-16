@@ -1,4 +1,5 @@
-{{ if .Values.launchpad.enabled }}
+{{- if .Values.launchpad.enabled -}}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -26,140 +27,170 @@ spec:
         app.kubernetes.io/component: server
         stardog.com/deployname: {{ .Release.Name }}-launchpad
         stardog.com/resource-type: stardog-apps
-      {{- with .Values.launchpad.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
     spec:
-      {{- with .Values.launchpad.imagePullSecrets }}
+      {{- if or .Values.launchpad.image.pullSecrets (and .Values.launchpad.image.username .Values.launchpad.image.password) }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+      {{- if .Values.launchpad.image.pullSecrets }}
+      {{- toYaml .Values.launchpad.image.pullSecrets | nindent 10 }}
       {{- end }}
       {{- if and .Values.launchpad.image.username .Values.launchpad.image.password }}
-      imagePullSecrets:
-          - name: {{ .Release.Name }}-launchpad-image-pull-secret
+      - name: {{ .Release.Name }}-launchpad-image-pull-secret
+      {{- end }}
       {{- end }}
       serviceAccountName: {{ include "launchpad.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.launchpad.securityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}-launchpad
-          image: {{ .Values.stardog.image.registry }}/{{ .Values.launchpad.image.repository }}:{{ .Values.launchpad.image.tag }}
-          imagePullPolicy: {{ .Values.launchpad.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: {{ .Values.launchpad.service.port }}
-              protocol: TCP
-          env:
-            - name: COOKIE_SECRET
-              value: {{ randAlphaNum 24 | quote }}
-            - name: SECURE
-              value: {{ .Values.launchpad.env.SECURE | quote }}
-            - name: BASE_URL
-              value: {{- include "launchpad.protocol" . }} ://{{- include "launchpad.host" . }}
-            - name: STARDOG_INTERNAL_ENDPOINT
-              value: {{- include "stardog.protocol" . }}://{{- include "stardog.host" . }}
-            - name: STARDOG_EXTERNAL_ENDPOINT
-              value: {{- include "stardog.protocol" . }}://{{- include "stardog.host" . }}
-            - name: FRIENDLY_NAME
-              value: {{ default "Stardog Applications" .Values.launchpad.env.FRIENDLY_NAME | quote }}
-            - name: JWK_LOCATION
-              value: {{ .Values.launchpad.env.JWK_LOCATION | quote }}
-            - name: JWT_ISSUER
-              value: {{ .Values.launchpad.env.JWT_ISSUER | quote }}
-            - name: K8S_DEPLOYMENT
-              value: {{ .Values.launchpad.env.K8S_DEPLOYMENT | quote }}
-            - name: AZURE_AUTH_ENABLED
-              value: {{ .Values.launchpad.env.AZURE_AUTH_ENABLED | quote }}
-            - name: AZURE_CLIENT_ID
-              value: {{ .Values.launchpad.env.AZURE_CLIENT_ID | quote }}
-            - name: AZURE_CLIENT_SECRET
-              value: {{ .Values.launchpad.env.AZURE_CLIENT_SECRET | quote }}
-            - name: AZURE_CLIENT_PRIVATE_KEY_FILE
-              value: {{ .Values.launchpad.env.AZURE_CLIENT_PRIVATE_KEY_FILE | quote }}
-            - name: AZURE_CLIENT_CERTIFICATE_THUMBPRINT
-              value: {{ .Values.launchpad.env.AZURE_CLIENT_CERTIFICATE_THUMBPRINT | quote }}
-            - name: AZURE_CLIENT_CERTIFICATE_FILE
-              value: {{ .Values.launchpad.env.AZURE_CLIENT_CERTIFICATE_FILE | quote }}
-            - name: AZURE_TENANT
-              value: {{ .Values.launchpad.env.AZURE_TENANT | quote }}
-            - name: AZURE_AUTH_TOKEN_TYPE
-              value: {{ .Values.launchpad.env.AZURE_AUTH_TOKEN_TYPE | quote }}
-            - name: AZURE_STARDOG_SCOPE
-              value: {{ .Values.launchpad.env.AZURE_STARDOG_SCOPE | quote }}
-            - name: GOOGLE_AUTH_ENABLED
-              value: {{ .Values.launchpad.env.GOOGLE_AUTH_ENABLED | quote }}
-            - name: GOOGLE_CLIENT_ID
-              value: {{ .Values.launchpad.env.GOOGLE_CLIENT_ID | quote }}
-            - name: GOOGLE_CLIENT_SECRET
-              value: {{ .Values.launchpad.env.GOOGLE_CLIENT_SECRET | quote }}
-            - name: KEYCLOAK_AUTH_ENABLED
-              value: {{ .Values.launchpad.env.KEYCLOAK_AUTH_ENABLED | quote }}
-            - name: KEYCLOAK_CLIENT_ID
-              value: {{ .Values.launchpad.env.KEYCLOAK_CLIENT_ID | quote }}
-            - name: KEYCLOAK_CLIENT_SECRET
-              value: {{ .Values.launchpad.env.KEYCLOAK_CLIENT_SECRET | quote }}
-            - name: KEYCLOAK_ENDPOINT
-              value: {{ .Values.launchpad.env.KEYCLOAK_ENDPOINT | quote }}
-            - name: KEYCLOAK_REALM
-              value: {{ .Values.launchpad.env.KEYCLOAK_REALM | quote }}
-            - name: KEYCLOAK_TOKEN_ROLES_CLAIM
-              value: {{ .Values.launchpad.env.KEYCLOAK_TOKEN_ROLES_CLAIM | quote }}
-            - name: PASSWORD_AUTH_ENABLED
-              value: {{ .Values.launchpad.env.PASSWORD_AUTH_ENABLED | quote }}
-            - name: SESSION_EXPIRATION
-              value: {{ .Values.launchpad.env.SESSION_EXPIRATION | quote }}
-            - name: STARDOG_SERVER_CERT_PATH
-              value: {{ .Values.launchpad.env.STARDOG_SERVER_CERT_PATH | quote }}
-            - name: STARDOG_CLIENT_CERT_PATH
-              value: {{ .Values.launchpad.env.STARDOG_CLIENT_CERT_PATH | quote }}
-            - name: STARDOG_CLIENT_CERT_PRIVATE_KEY_PATH
-              value: {{ .Values.launchpad.env.STARDOG_CLIENT_CERT_PRIVATE_KEY_PATH | quote }}
-            {{/*
-             Esto es un blucle key values
-            {{- range $key, $evar := .Values.launchpad.env }}
-            - name: {{ $key }}
-              value: {{ $evar | quote }}
-            {{- end }}
-            {{- if .Values.jwt.enabled }}
-            - name: JWK_LOCATION
-              value: "/jwt"
-            {{- end }}
-            {{- range $.Values.env }} 
-            - name: {{ .name }}
-              value: {{ .value | quote}}
-            {{- end }}
-          */}}
-          resources:
-            {{- toYaml .Values.launchpad.resources | nindent 12 }}
-{{/*        {{- if .Values.jwt.enabled }}
-          volumeMounts:
-          - name: {{ .Values.jwt.secretName }}
-            mountPath: "/jwt/cert.key"  
-            subPath: cert-key.key  
-          - name: {{ .Values.jwt.secretName }}  
-            mountPath: "/jwt/pubkey.pub" 
-            subPath: public-key.pub
-        {{- end }}  */}}
+      - name: {{ .Chart.Name }}-launchpad
+        image: "{{ .Values.launchpad.image.registry }}/{{ .Values.launchpad.image.repository }}:{{ .Values.launchpad.image.tag }}"
+        imagePullPolicy: {{ .Values.launchpad.image.pullPolicy | quote }}
+        securityContext:
+        {{- toYaml .Values.stardog.securityContext | nindent 12 }}
+        ports:
+          - name: http
+            containerPort: 8080
+            protocol: TCP
+        {{- if .Values.launchpad.tls.internal.enabled }}
+        volumeMounts:
+        - name: jwk-vol
+          mountPath: /jwk
+          readOnly: true
+        {{- end }}
+        env:
+          - name: COOKIE_SECRET
+            value: {{ randAlphaNum 24 | quote }}
+          - name: SECURE
+            value: {{ .Values.launchpad.env.SECURE | quote }}
+          - name: FRIENDLY_NAME
+            value: {{ default "Stardog Applications" .Values.launchpad.env.FRIENDLY_NAME | quote }}
+          - name: BASE_URL
+            value: {{ printf "%s://%s " (include "launchpad.protocol" .) (include "launchpad.host" . ) }}
+          - name: STARDOG_INTERNAL_ENDPOINT
+            value: {{ printf "http://%s:%d" (include "stardog.fullname" .) (.Values.stardog.ports.server | int) }}
+          - name: STARDOG_EXTERNAL_ENDPOINT
+            value: {{ printf "%s://%s " (include "stardog.protocol" .) (include "stardog.host" . ) }} 
+          {{- if or .Values.launchpad.env.JWK_LOCATION (gt (len .Values.launchpad.env.JWK_LOCATION) 0) }} 
+          - name: JWK_LOCATION
+            value: {{ .Values.launchpad.env.JWK_LOCATION | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.JWT_ISSUER (gt (len .Values.launchpad.env.JWT_ISSUER) 0) }}
+          - name: JWT_ISSUER
+            value: {{ .Values.launchpad.env.JWT_ISSUER | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.K8S_DEPLOYMENT (gt (len .Values.launchpad.env.K8S_DEPLOYMENT) 0) }}
+          - name: K8S_DEPLOYMENT
+            value: {{ .Values.launchpad.env.K8S_DEPLOYMENT | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.AZURE_AUTH_ENABLED (gt (len .Values.launchpad.env.AZURE_AUTH_ENABLED) 0) }}
+          - name: AZURE_AUTH_ENABLED
+            value: {{ .Values.launchpad.env.AZURE_AUTH_ENABLED | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.AZURE_CLIENT_ID (gt (len .Values.launchpad.env.AZURE_CLIENT_ID) 0) }}
+          - name: AZURE_CLIENT_ID
+            value: {{ .Values.launchpad.env.AZURE_CLIENT_ID | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.AZURE_CLIENT_SECRET (gt (len .Values.launchpad.env.AZURE_CLIENT_SECRET) 0) }}
+          - name: AZURE_CLIENT_SECRET
+            value: {{ .Values.launchpad.env.AZURE_CLIENT_SECRET | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.AZURE_CLIENT_PRIVATE_KEY_FILE (gt (len .Values.launchpad.env.AZURE_CLIENT_PRIVATE_KEY_FILE) 0) }}
+          - name: AZURE_CLIENT_PRIVATE_KEY_FILE
+            value: {{ .Values.launchpad.env.AZURE_CLIENT_PRIVATE_KEY_FILE | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.AZURE_CLIENT_CERTIFICATE_THUMBPRINT (gt (len .Values.launchpad.env.AZURE_CLIENT_CERTIFICATE_THUMBPRINT) 0) }}
+          - name: AZURE_CLIENT_CERTIFICATE_THUMBPRINT
+            value: {{ .Values.launchpad.env.AZURE_CLIENT_CERTIFICATE_THUMBPRINT | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.AZURE_CLIENT_CERTIFICATE_FILE (gt (len .Values.launchpad.env.AZURE_CLIENT_CERTIFICATE_FILE) 0) }}
+          - name: AZURE_CLIENT_CERTIFICATE_FILE
+            value: {{ .Values.launchpad.env.AZURE_CLIENT_CERTIFICATE_FILE | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.AZURE_TENANT (gt (len .Values.launchpad.env.AZURE_TENANT) 0) }}
+          - name: AZURE_TENANT
+            value: {{ .Values.launchpad.env.AZURE_TENANT | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.AZURE_AUTH_TOKEN_TYPE (gt (len .Values.launchpad.env.AZURE_AUTH_TOKEN_TYPE) 0) }}
+          - name: AZURE_AUTH_TOKEN_TYPE
+            value: {{ .Values.launchpad.env.AZURE_AUTH_TOKEN_TYPE | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.AZURE_STARDOG_SCOPE (gt (len .Values.launchpad.env.AZURE_STARDOG_SCOPE) 0) }}
+          - name: AZURE_STARDOG_SCOPE
+            value: {{ .Values.launchpad.env.AZURE_STARDOG_SCOPE | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.GOOGLE_AUTH_ENABLED (gt (len .Values.launchpad.env.GOOGLE_AUTH_ENABLED) 0) }}
+          - name: GOOGLE_AUTH_ENABLED
+            value: {{ .Values.launchpad.env.GOOGLE_AUTH_ENABLED | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.GOOGLE_CLIENT_ID (gt (len .Values.launchpad.env.GOOGLE_CLIENT_ID) 0) }}
+          - name: GOOGLE_CLIENT_ID
+            value: {{ .Values.launchpad.env.GOOGLE_CLIENT_ID | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.GOOGLE_CLIENT_SECRET (gt (len .Values.launchpad.env.GOOGLE_CLIENT_SECRET) 0) }}
+          - name: GOOGLE_CLIENT_SECRET
+            value: {{ .Values.launchpad.env.GOOGLE_CLIENT_SECRET | quote }}
+          {{- end }}
+          {{- if or  .Values.launchpad.env.KEYCLOAK_AUTH_ENABLED (gt (len .Values.launchpad.env.KEYCLOAK_AUTH_ENABLED) 0) }}
+          - name: KEYCLOAK_AUTH_ENABLED
+            value: {{ .Values.launchpad.env.KEYCLOAK_AUTH_ENABLED | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.KEYCLOAK_CLIENT_ID (gt (len .Values.launchpad.env.KEYCLOAK_CLIENT_ID) 0) }}
+          - name: KEYCLOAK_CLIENT_ID
+            value: {{ .Values.launchpad.env.KEYCLOAK_CLIENT_ID | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.KEYCLOAK_CLIENT_SECRET (gt (len .Values.launchpad.env.KEYCLOAK_CLIENT_SECRET) 0) }}
+          - name: KEYCLOAK_CLIENT_SECRET
+            value: {{ .Values.launchpad.env.KEYCLOAK_CLIENT_SECRET | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.KEYCLOAK_ENDPOINT (gt (len .Values.launchpad.env.KEYCLOAK_ENDPOINT) 0) }}
+          - name: KEYCLOAK_ENDPOINT
+            value: {{ .Values.launchpad.env.KEYCLOAK_ENDPOINT | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.KEYCLOAK_REALM (gt (len .Values.launchpad.env.KEYCLOAK_REALM) 0) }}
+          - name: KEYCLOAK_REALM
+            value: {{ .Values.launchpad.env.KEYCLOAK_REALM | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.KEYCLOAK_TOKEN_ROLES_CLAIM (gt (len .Values.launchpad.env.KEYCLOAK_TOKEN_ROLES_CLAIM) 0) }}
+          - name: KEYCLOAK_TOKEN_ROLES_CLAIM
+            value: {{ .Values.launchpad.env.KEYCLOAK_TOKEN_ROLES_CLAIM | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.PASSWORD_AUTH_ENABLED (gt (len .Values.launchpad.env.PASSWORD_AUTH_ENABLED) 0) }}
+          - name: PASSWORD_AUTH_ENABLED
+            value: {{ .Values.launchpad.env.PASSWORD_AUTH_ENABLED | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.SESSION_EXPIRATION (gt (len .Values.launchpad.env.SESSION_EXPIRATION) 0) }}
+          - name: SESSION_EXPIRATION
+            value: {{ .Values.launchpad.env.SESSION_EXPIRATION | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.STARDOG_SERVER_CERT_PATH (gt (len .Values.launchpad.env.STARDOG_SERVER_CERT_PATH) 0) }}
+          - name: STARDOG_SERVER_CERT_PATH
+            value: {{ .Values.launchpad.env.STARDOG_SERVER_CERT_PATH | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.STARDOG_CLIENT_CERT_PATH (gt (len .Values.launchpad.env.STARDOG_CLIENT_CERT_PATH) 0) }}
+          - name: STARDOG_CLIENT_CERT_PATH
+            value: {{ .Values.launchpad.env.STARDOG_CLIENT_CERT_PATH | quote }}
+          {{- end }}
+          {{- if or .Values.launchpad.env.STARDOG_CLIENT_CERT_PRIVATE_KEY_PATH (gt (len .Values.launchpad.env.STARDOG_CLIENT_CERT_PRIVATE_KEY_PATH) 0) }}
+          - name: STARDOG_CLIENT_CERT_PRIVATE_KEY_PATH
+            value: {{ .Values.launchpad.env.STARDOG_CLIENT_CERT_PRIVATE_KEY_PATH | quote }}
+          {{- end }}
+        resources:
+{{- toYaml .Values.launchpad.resources | nindent 12 }}
+{{- if .Values.launchpad.tls.internal.enabled }}
+      volumes:
+        - name: jwk-vol
+          secret:
+            secretName: {{ .Values.launchpad.tls.internal.secretName }}
+{{- end }}
       {{- with .Values.launchpad.nodeSelector }}
       nodeSelector:
-        {{- toYaml . | nindent 8 }}
+{{ toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.launchpad.affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
+{{ toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.launchpad.tolerations }}
       tolerations:
-        {{- toYaml . | nindent 8 }}
+{{ toYaml . | nindent 8 }}
       {{- end }}
-{{/*
-  {{- if .Values.jwt.enabled }}
-      volumes:
-      - name: {{ .Values.jwt.secretName }}
-        secret:
-          secretName: {{ .Values.jwt.secretName }}
-  {{- end }}
-*/}}
 
-{{- end }}
+{{- end -}}
+

@@ -1,24 +1,14 @@
-Stardog Helm Charts
+Stardog Helm Chart
 ===================
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![<ORG_NAME>](https://circleci.com/gh/stardog-union/helm-charts.svg?style=shield&circle-token=213cf9bca0acf5d3945dfd5d746b48f1c2d436e0)](https://app.circleci.com/pipelines/gh/stardog-union/helm-charts)
-
-
-#  <span style="color:red"> Helm chart v2.1.0 documentation is under construction. </span>
-
-## <span style="color:blue"> Documentation is will be updated soon. </span>
- 
-
-
-These charts install the Stardog Knowledge Graph platform on Kubernetes.
+These charts install the Stardog Knowledge Graph platform on Kubernetes. 
 
 Stardog documentation: https://www.stardog.com/docs
 
 Highlights
 ----------
 
-As of version 2.0.0 of the Stardog Helm charts, ZooKeeper 3.5.7 is now deployed
+As of version 3.0.0 of the Stardog Helm charts, ZooKeeper 3.5.7 is now deployed
 with the [Bitnami](https://github.com/bitnami/charts/tree/master/bitnami/zookeeper)
 ZooKeeper chart. Stardog 7.4.2 includes preview support for ZooKeeper 3.5.x so you
 must be running that version of Stardog or later. Please see the Stardog chart
@@ -42,9 +32,27 @@ Prerequisites
 Installing
 ----------
 
+To inatall Stardog using helm chart
+
+1. Import the helm repository
+```
+$ helm repo add stardog https://stardog-union.github.io/helm-charts-sa/
+```
+2. Create namespace for stardog.
+```
+$ kubectl create namespace <your-namespace>
+```
+
+3. Create secret for stardog-license.
 ```
 $ kubectl -n <your-namespace> create secret generic stardog-license --from-file stardog-license-key.bin=/path/to/stardog-license-key.bin
-$ helm repo add stardog https://stardog-union.github.io/helm-charts-ingress/
+```
+
+3. 
+
+```
+$ kubectl -n <your-namespace> create secret generic stardog-license --from-file stardog-license-key.bin=/path/to/stardog-license-key.bin
+$ helm repo add stardog https://stardog-union.github.io/helm-charts-sa/
 $ helm install <helm-release-name> --namespace <your-namespace> stardog/stardog
 ```
 
@@ -88,7 +96,7 @@ kubectl create secret generic stardog-license --from-file stardog-license-key.bi
 ## Install Stardog as a helm release
 ```
 helm install stardog charts/stardog/ --wait --timeout 15m -f tests/minikube.yaml \
- --set "cluster.enabled=false" \
+--set "cluster.enabled=false" \
 --set "replicaCount=1" \
 --set "zookeeper.enabled=false"
 ```

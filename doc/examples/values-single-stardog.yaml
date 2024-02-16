@@ -1,0 +1,39 @@
+
+stardog:
+  enabled: true
+
+  service:
+    type: ClusterIP
+
+  ports:
+    server: 5820
+    sql: 5806
+
+  image:
+    registry: stardog.azurecr.io
+    repository: sa-lab-stardog/stardog
+    tag: latest
+    username: helm-stardog
+    password: "uhdd7/iwy9nHf9b8mDWWHx0JsNsyTVh6d0h/Zl9kAz+ACRBtLFVf"
+
+
+  persistence:
+    size: 5Gi
+    storageClass: ""
+    annotations:
+      storageclass.kubernetes.io/is-default-class: "true"
+
+  stardogProperties: |
+    security.named.graphs=true
+    sql.server.enabled=true
+    query.all.graphs=true
+    spatial.use.jts=true
+    metrics.reporter=jmx
+    metrics.jvm.enabled=true
+    metrics.jmx.remote.access=true
+    query.timeout=1h
+    storage.starrocks.enable_snmp=true
+    storage.statistics.timing=true
+
+
+  

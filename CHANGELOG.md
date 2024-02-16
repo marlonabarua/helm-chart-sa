@@ -1,3 +1,8 @@
+# 3.0.0
+* Helm chart sa
+* Include value file organization
+* Launchpad deploment.
+
 # 2.1.0
 * Helm chart sa
 

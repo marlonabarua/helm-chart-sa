@@ -1,3 +1,4 @@
+{{- if .Values.stardog.enabled }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -14,9 +15,9 @@ spec:
     matchLabels:
       app: {{ include "stardog.fullname" . }}
   serviceName: {{ include "stardog.fullname" . }}
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.stardog.cluster.replicaCount }}
   # Enable for debugging purpose only, usually for bringing all pods at once in a StatefulSet
-  podManagementPolicy: {{ .Values.podManagementPolicy }}
+  podManagementPolicy: {{ .Values.stardog.podManagementPolicy }}
   template:
     metadata:
       labels:
@@ -28,24 +29,19 @@ spec:
         app.kubernetes.io/component: server
         stardog.com/deployname: {{ .Release.Name }}
         stardog.com/resource-type: cluster-node
-        {{- if .Values.licenseServer.enabled }}
-        stardog.com/license-type: {{ .Values.licenseServer.licenseType }}
-        stardog.com/cloud-type:  {{ .Values.stardogCloudType }}
+        {{- if .Values.stardog.licenseServer.enabled }}
+        stardog.com/license-type: {{ .Values.stardog.licenseServer.licenseType }}
         {{- end }}
     spec:
-      {{- with .Values.tolerations }}
+      {{- with .Values.stardog.tolerations }}
       tolerations: {{ toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.securityContext.enabled }}
       securityContext:
-        runAsUser: {{ .Values.securityContext.runAsUser }}
-        runAsGroup: {{ .Values.securityContext.runAsGroup }}
-        fsGroup: {{ .Values.securityContext.fsGroup  }}
-      {{- end }}
+        {{- toYaml .Values.stardog.securityContext | nindent 8 }}
       affinity:
         podAntiAffinity:
-          {{ .Values.antiAffinity }}:
-        {{- if eq .Values.antiAffinity "requiredDuringSchedulingIgnoredDuringExecution" }}
+          {{ .Values.stardog.antiAffinity }}:
+        {{- if eq .Values.stardog.antiAffinity "requiredDuringSchedulingIgnoredDuringExecution" }}
           - labelSelector:
               matchExpressions:
               - key: "app"
@@ -64,7 +60,7 @@ spec:
                   - {{ include "stardog.fullname" . }}
               topologyKey: "kubernetes.io/hostname"
         {{- end }}
-{{ if .Values.cluster.enabled }}
+{{ if .Values.stardog.cluster.enabled }}
       initContainers:
       - name: wait-for-zk
         image: busybox
@@ -96,16 +92,18 @@ spec:
 {{- end }}
       containers:
       - name: {{ include "stardog.fullname" . }}
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
-        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.stardog.image.pullPolicy }}
+        image: "{{ .Values.stardog.image.registry }}/{{ .Values.stardog.image.repository }}:{{ .Values.stardog.image.tag }}"
+        securityContext:
+        {{- toYaml .Values.stardog.securityContext | nindent 12 }}
         ports:
-        - containerPort: {{ .Values.ports.server }}
+        - containerPort: {{ .Values.stardog.ports.server }}
           name: server
-        {{- if .Values.ports.sql }}
-        - containerPort: {{ .Values.ports.sql }}
+        {{- if .Values.stardog.ports.sql }}
+        - containerPort: {{ .Values.stardog.ports.sql }}
           name: sql
         {{- end }}
-        {{- with .Values.resources }}
+        {{- with .Values.stardog.resources }}
         resources:
           {{- toYaml . | nindent 10}}
         {{- end }}
@@ -113,7 +111,7 @@ spec:
         - name: {{ include "stardog.fullname" . }}-password
           mountPath: /etc/stardog-password
           readOnly: true
-        {{- if not .Values.licenseServer.enabled }}
+        {{- if not .Values.stardog.licenseServer.enabled }}
         - name: stardog-license
           mountPath: /etc/stardog-license
           readOnly: true
@@ -128,19 +126,19 @@ spec:
           mountPath: /var/opt/stardog/log4j2.xml
           subPath: log4j2.xml
           readOnly: true
-       {{- if .Values.oauth.enabled }}
+       {{- if .Values.stardog.jwt.enabled }}
         - name: {{ include "stardog.fullname" . }}-jwt
           mountPath: /var/opt/stardog/jwt.yaml
           subPath: jwt.yaml
           readOnly: true
        {{- end }}
-        {{- if .Values.backup.enabled }}
-        {{- if eq .Values.backup.provider "azure" }}
+        {{- if .Values.stardog.backup.enabled }}
+        {{- if eq .Values.stardog.backup.provider "azure" }}
         - name: {{ include "stardog.fullname" . }}-az-backups
           mountPath: /var/opt/stardog-backups 
           readOnly: false
         {{- end }}
-        {{- if eq .Values.backup.provider "gcp" }}
+        {{- if eq .Values.stardog.backup.provider "gcp" }}
         - name: {{ include "stardog.fullname" . }}-gcp-backups
           mountPath: /var/opt/stardog-backups
           readOnly: false
@@ -148,7 +146,7 @@ spec:
         {{- end }} 
         env:
         - name: PORT
-          value: "{{ .Values.ports.server }}"
+          value: "{{ .Values.stardog.ports.server }}"
         - name: STARDOG_HOME
           value: "/var/opt/stardog/"
         - name: STARDOG_LICENSE_PATH
@@ -156,9 +154,9 @@ spec:
         - name: STARDOG_PROPERTIES
           value: "/etc/stardog-conf/stardog.properties"
         - name: STARDOG_SERVER_JAVA_ARGS
-          value: "-Djava.io.tmpdir={{ .Values.tmpDir }} -XX:+HeapDumpOnOutOfMemoryError -Xms{{ .Values.jvm.minHeap }} -Xmx{{ .Values.jvm.maxHeap }} -XX:MaxDirectMemorySize={{ .Values.jvm.directMem }} {{ .Values.javaArgs }}"
+          value: "-Djava.io.tmpdir={{ .Values.stardog.tmpDir }} -XX:+HeapDumpOnOutOfMemoryError -Xms{{ .Values.stardog.jvm.minHeap }} -Xmx{{ .Values.stardog.jvm.maxHeap }} -XX:MaxDirectMemorySize={{ .Values.stardog.jvm.directMem }} {{ .Values.stardog.javaArgs }}"
         - name: STARDOG_TMP_PATH
-          value: "{{ .Values.tmpDir }}"
+          value: "{{ .Values.stardog.tmpDir }}"
         - name: LICENSE_NAME
           value: {{ .Release.Namespace }}
         command:
@@ -168,7 +166,7 @@ spec:
           set -ex
           {{ .Files.Get "files/utils.sh" | indent 10 }}
           make_temp ${STARDOG_TMP_PATH}
-          {{- if .Values.SSL.enabled }}
+          {{- if .Values.stardog.ssl.enabled }}
           /opt/stardog/bin/stardog-admin server start --foreground --port ${PORT} --home ${STARDOG_HOME} --require-ssl
           {{- else }}
           /opt/stardog/bin/stardog-admin server start --foreground --port ${PORT} --home ${STARDOG_HOME}
@@ -177,16 +175,16 @@ spec:
           httpGet:
             path: /admin/alive
             port: server
-          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
-          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
-          timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+          initialDelaySeconds: {{ .Values.stardog.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.stardog.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.stardog.livenessProbe.timeoutSeconds }}
         readinessProbe:
           httpGet:
             path: /admin/healthcheck
             port: server
-          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
-          periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
-          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          initialDelaySeconds: {{ .Values.stardog.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.stardog.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.stardog.readinessProbe.timeoutSeconds }}
         lifecycle:
           preStop:
             exec:
@@ -195,10 +193,10 @@ spec:
               - -c
               - |
                 /opt/stardog/bin/stardog-admin server stop -u admin -p $(cat /etc/stardog-password/adminpw)
-      {{- if .Values.enableAuditSidecar }}
+      {{- if .Values.stardog.enableAuditSidecar }}
       - name: {{ include "stardog.fullname" . }}-auditlog
         imagePullPolicy: Always
-        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        image: {{ .Values.stardog.image.registry }}/{{ .Values.stardog.image.repository }}:{{ .Values.stardog.image.tag }}
         resources:
           requests:
             memory: 1Gi
@@ -217,11 +215,17 @@ spec:
             mountPath: /var/opt/stardog/
             readOnly: true
       {{- end }}
-      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.stardog.terminationGracePeriodSeconds }}
+      {{- with .Values.stardog.image.pullSecrets }}
+      imagePullSecrets:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if and .Values.stardog.image.username .Values.stardog.image.password }}
       imagePullSecrets:
       - name: {{ .Release.Name }}-image-pull-secret
+      {{- end }}
       volumes:
-      {{- if not .Values.licenseServer.enabled }}
+      {{- if not .Values.stardog.licenseServer.enabled }}
       - name: stardog-license
         secret:
           secretName: stardog-license
@@ -245,7 +249,7 @@ spec:
             - key: password
               path: adminpw
               mode: 444
-      {{- if .Values.oauth.enabled }}
+      {{- if .Values.stardog.jwt.enabled }}
       - name: {{ include "stardog.fullname" . }}-jwt
         configMap:
           name: {{ include "stardog.fullname" . }}-jwt
@@ -253,33 +257,38 @@ spec:
             - key: jwt.yaml
               path: jwt.yaml
       {{- end }}
-      {{- if .Values.backup.enabled }}
-      {{- if eq .Values.backup.provider "azure" }}
+      {{- if .Values.stardog.backup.enabled }}
+      {{- if eq .Values.stardog.backup.provider "azure" }}
       - name: {{ include "stardog.fullname" . }}-az-backups
         persistentVolumeClaim:
           claimName: {{ include "stardog.fullname" . }}-azurefile-bck-pvc
           readOnly: false 
       {{- end }}
-      {{- if eq .Values.backup.provider "gcp" }}
+      {{- if eq .Values.stardog.backup.provider "gcp" }}
       - name: {{ include "stardog.fullname" . }}-gcp-backups
         persistentVolumeClaim:
           claimName: {{ include "stardog.fullname" . }}-gcpfile-bck-pvc
           readOnly: false 
       {{- end }}
       {{- end }} 
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.stardog.nodeSelector }}
       nodeSelector:
       {{- toYaml . | nindent 8}}
       {{- end }}
   volumeClaimTemplates:
   - metadata:
       name: data
+      {{- with .Values.stardog.persistence.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      {{- if .Values.persistence.storageClass }}
-      storageClassName: {{ .Values.persistence.storageClass }}
+      {{- if .Values.stardog.persistence.storageClass }}
+      storageClassName: {{ .Values.stardog.persistence.storageClass  | quote}}
       {{- end }}
       resources:
         requests:
-          storage: {{ .Values.persistence.size }}
+          storage: {{ .Values.stardog.persistence.size }}
+{{- end }}
         

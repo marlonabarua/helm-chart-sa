@@ -1,0 +1,40 @@
+
+stardog:
+  enabled: false
+
+launchpad:
+  enabled: true
+  image:
+    registry: stardog.azurecr.io
+    repository: sa-lab-stardog/launchpad
+    tag: latest
+    username: helm-stardog
+    password: "uhdd7/iwy9nHf9b8mDWWHx0JsNsyTVh6d0h/Zl9kAz+ACRBtLFVf"
+
+  tls: 
+    enabled: true
+
+  certmanager: 
+    enabled: true
+    email: "marlon.garcia@stardog.com"
+    commonName: "launchpad.lp.test.sd-testlab.com" 
+    issuerRef:
+      name: letsencrypt-staging
+    dnsNames: 
+    - "launchpad.lp.test.sd-testlab.com" 
+
+  ingress:
+    enabled: true
+    annotations:
+    className: "nginx" 
+    url: "lp.test.sd-testlab.com" # The URL for the ingress
+    path: "/" # The path for the ingress
+    pathtype: "Prefix" # The path type (e.g., Prefix, Exact)
+    tls:
+      enabled: true
+
+  env: 
+    FRIENDLY_NAME: "Stardog Applications Cluster Alone"
+    STARDOG_INTERNAL_ENDPOINT: "https://sparql.test.sd-testlab.com"
+    STARDOG_EXTERNAL_ENDPOINT: "https://sparql.test.sd-testlab.com"
+

@@ -1,1 +1,31 @@
-Stardog Cluster
+Thank you for installing {{ .Chart.Name }}!
+
+{{ print "Your application is now deployed and can be accessed via: "}}
+
+{{- if .Values.stardog.ingress.enabled }}
+Stardog Endpoint: {{ printf "%s://%s " (include "stardog.protocol" .) (include "stardog.host" . ) }}
+BI Ennpoint: {{ printf "bi.%s" .Values.stardog.ingress.url }}:{{ .Values.stardog.ports.sql }}
+Launchpad Endpoint: {{ printf "%s://%s " (include "launchpad.protocol" .) (include "launchpad.host" . ) }}
+{{- else }}
+{{- if eq .Values.stardog.service.type "ClusterIP" }}
+  Use kubectl to port-forward or proxy to your pod:
+  {{- if .Values.stardog.enabled }}
+  kubectl port-forward svc/{{ include "stardog.fullname" . }} 5820:5820
+  {{- end }}
+  {{- if .Values.launchpad.enabled }}
+  kubectl port-forward svc/{{ include "stardog.fullname" . }}-launchpad 8080:8080
+  {{- end }}
+{{- else if eq .Values.stardog.service.type "LoadBalancer" }}
+  Access your application via the load balancer's IP:
+  {{- if .Values.stardog.enabled }}
+  kubectl get svc {{ include "stardog.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+  {{- end }}
+{{- else if eq .Values.stardog.service.type "NodePort" }}
+  Access your application via any cluster node IP at port:
+  {{- if .Values.stardog.enable }}
+  kubectl get svc {{ include "stardog.fullname" . }} -o jsonpath='{.spec.ports[0].nodePort}'
+  {{- end }}
+{{- end }}
+{{- end }}
+
+For more information, visit https://stardog.com.
