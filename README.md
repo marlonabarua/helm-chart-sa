@@ -68,6 +68,74 @@ Deleting
 $ helm delete <helm-release-name> --namespace <your-namespace>
 ```
 
+Values Properties
+-----------------
+
+| Value Property                 | Default Value  | Is Required | Description                 |
+|-------------------------------|-------------|-------------|-----------------------|
+| `stardog.enabled`                             | `true`                                                | No          | Enable or disable the Stardog component in the chart.                                                    |
+| `stardog.licenseServer.enabled`               | `false`                                               | No          | Enable or disable the license server for Stardog.                                                        |
+| `stardog.licenseServer.licenseType`           | `unlimited`                                           | No          | Type of license for Stardog (e.g., `unlimited`).                                                         |
+| `stardog.licenseServer.url`                   | `""`                                                  | No          | URL of the Stardog license server.                                                                       |
+| `stardog.stardogCloudType`                    | `""`                                                  | No          | Specifies the type of Stardog cloud deployment.                                                          |
+| `stardog.cluster.enabled`                     | `false`                                               | No          | Enable or disable clustering for Stardog.                                                                |
+| `stardog.cluster.replicaCount`                | `1`                                                   | No          | Number of replicas in the Stardog cluster.                                                               |
+| `stardog.podManagementPolicy`                 | `OrderedReady`                                        | No          | Pod startup policy, either `OrderedReady` for sequential starts or `Parallel` for all at once.           |
+| `stardog.terminationGracePeriodSeconds`       | `300`                                                 | No          | Time in seconds before forcefully killing pods on shutdown.                                              |
+| `stardog.jvm.minHeap`                         | `1g`                                                  | No          | Minimum heap size for the JVM running Stardog.                                                           |
+| `stardog.jvm.maxHeap`                         | `1g`                                                  | No          | Maximum heap size for the JVM running Stardog.                                                           |
+| `stardog.jvm.directMem`                       | `2g`                                                  | No          | Size of the direct memory allocation pool for the JVM.                                                   |
+| `stardog.javaArgs`                            | `""`                                                  | No          | Additional JVM arguments to pass to Stardog.                                                             |
+| `stardog.service.type`                        | `ClusterIP`                                           | No          | Kubernetes Service type for Stardog.                                                                     |
+| `stardog.ports.server`                        | `5820`                                                | No          | Port to expose the Stardog server.                                                                       |
+| `stardog.ports.sql`                           | `5806`                                                | No          | Port to expose Stardog's SQL server.                                                                     |
+| `stardog.ssl.enabled`                         | `false`                                               | No          | Enable or disable SSL for Stardog.                                                                       |
+| `stardog.tmpDir`                              | `/tmp`                                                | No          | Temporary directory path inside Stardog pods.                                                            |
+| `stardog.admin.password`                      | `admin`                                               | No          | Initial password for the Stardog admin user.                                                             |
+| `stardog.image.registry`                      | `https://registry.hub.docker.com/v2/repositories`    | No          | Docker registry for the Stardog image.                                                                   |
+| `stardog.image.repository`                    | `stardog/stardog`                                     | No          | Docker repository for the Stardog image.                                                                 |
+| `stardog.image.tag`                           | `latest`                                              | No          | Docker image tag for the Stardog image.                                                                  |
+| `stardog.image.pullPolicy`                    | `IfNotPresent`                                        | No          | Image pull policy for the Stardog Docker image.                                                          |
+| `stardog.image.username`                      | `""`                                                  | No          | Username for Docker registry authentication.                                                             |
+| `stardog.image.password`                      | `""`                                                  | No          | Password for Docker registry authentication.                                                             |
+| `stardog.persistence.storageClass`            | `""`                                                  | No          | Storage class for Stardog volumes.                                                                       |
+| `stardog.persistence.size`                    | `5Gi`                                                 | No          | Size of the persistent volume for Stardog.                                                               |
+| `stardog.antiAffinity`                        | `requiredDuringSchedulingIgnoredDuringExecution`     | No          | Pod anti-affinity settings.                                                                              |
+| `stardog.resources.requests.cpu`              | `1`                                                   | No          | Requested CPU resources for Stardog pods.                                                                |
+| `stardog.resources.requests.memory`           | `1Gi`                                                 | No          | Requested memory resources for Stardog pods.                                                             |
+| `stardog.resources.limits.cpu`                | `2`                                                   | No          | CPU resource limits for Stardog pods.                                                                    |
+| `stardog.resources.limits.memory`             | `2Gi`                                                 | No          | Memory resource limits for Stardog pods.                                                                 |
+| `stardog.enableAuditSidecar`                  | `false`                                               | No          | Enable or disable the audit log sidecar container.                                                       |
+| `stardog.securityContext.runAsNonRoot`        | `true`                                                | No          | Enforce running containers as non-root user.                                                             |
+| `stardog.securityContext.runAsUser`           | `1000`                                                | No          | UID to run the container as.                                                                             |
+| `stardog.securityContext.runAsGroup`          | `1000`                                                | No          | GID to run the container as.                                                                             |
+| `stardog.securityContext.fsGroup`             | `1000`                                                | No          | GID for volume mounts within the container.                                                              |
+| `stardog.livenessProbe.initialDelaySeconds`   | `30`                                                  | No          | Initial delay before starting the liveness probe.                                                        |
+| `stardog.readinessProbe.initialDelaySeconds`  | `90`                                                  | No          | Initial delay before starting the readiness probe.                                                       |
+| `launchpad.enabled`                           | `false`                                               | No          | Enable or disable the Launchpad component in the chart.                                                  |
+| `launchpad.replicaCount`                      | `1`                                                   | No          | Number of replicas for the Launchpad component.                                                          |
+| `launchpad.service.type`                      | `ClusterIP`                                           | No          | Kubernetes Service type for Launchpad.                                                                   |
+| `launchpad.service.port`                      | `8080`                                                | No          | Port for the Launchpad service.                                                                          |
+| `launchpad.tls.enabled`                       | `false`                                               | No          | Enable or disable TLS for Launchpad.                                                                     |
+| `launchpad.ingress.enabled`                   | `false`                                               | No          | Enable or disable ingress for Launchpad.                                                                 |
+| `launchpad.ingress.className`                 | `nginx`                                               | No          | Ingress class name for Launchpad.                                                                        |
+| `launchpad.ingress.url`                       | `launchnpad.stardogcloud.com`                         | No          | URL for Launchpad ingress.                                                                               |
+| `launchpad.resources.requests.cpu`            | `1`                                                   | No          | Requested CPU resources for Launchpad pods.                                                              |
+| `launchpad.resources.requests.memory`         | `1Gi`                                                 | No          | Requested memory resources for Launchpad pods.                                                           |
+| `launchpad.resources.limits.cpu`              | `2`                                                   | No          | CPU resource limits for Launchpad pods.                                                                  |
+| `launchpad.resources.limits.memory`           | `2Gi`                                                 | No          | Memory resource limits for Launchpad pods.                                                               |
+| `launchpad.serviceAccount.create`             | `true`                                                | No          | Specifies whether a service account for Launchpad should be created.                                     |
+| `launchpad.securityContext.runAsNonRoot`      | `true`                                                | No          | Enforce running Launchpad containers as non-root user.                                                   |
+| `launchpad.securityContext.runAsUser`         | `1000`                                                | No          | UID to run the Launchpad container as.                                                                   |
+| `launchpad.securityContext.runAsGroup`        | `1000`                                                | No          | GID to run the Launchpad container as.                                                                   |
+| `launchpad.image.registry`                    | `https://registry.hub.docker.com/v2/repositories`    | No          | Docker registry for the Launchpad image.                                                                 |
+| `launchpad.image.repository`                  | `stardog/launchpad`                                   | No          | Docker repository for the Launchpad image.                                                               |
+| `launchpad.image.tag`                         | `latest`                                              | No          | Docker image tag for the Launchpad image.                                                                |
+| `launchpad.image.pullPolicy`                  | `IfNotPresent`                                        | No          | Image pull policy for the Launchpad Docker image.                                                        |
+| `zookeeper.enabled`                           | `false`                                               | No          | Enable or disable Zookeeper component in the chart.                                                      |
+
+
+
 Running the tests locally
 -------------------------
 

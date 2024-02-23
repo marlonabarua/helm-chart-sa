@@ -1,17 +1,17 @@
-{{- if or .Values.stardog.certmanager.enabled .Values.launchpad.certmanager.enabled }}
+{{- if or .Values.stardog.certificateManager.enabled .Values.launchpad.certificateManager.enabled }}
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: {{ .Values.stardog.certmanager.issuerRef.name | default .Values.launchpad.certmanager.issuerRef.name }}
+  name: {{ .Values.stardog.certificateManager.issuerRef.name | default .Values.launchpad.certificateManager.issuerRef.name }}
   namespace: {{ .Release.Namespace }}
 labels:
   app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
   acme:
     server: https://acme-staging-v02.api.letsencrypt.org/directory
-    email: {{ .Values.stardog.certmanager.email | default .Values.launchpad.certmanager.email }}
+    email: {{ .Values.stardog.certificateManager.email | default .Values.launchpad.certificateManager.email }}
     privateKeySecretRef:
-      name: {{ .Values.stardog.certmanager.issuerRef.name | default .Values.launchpad.certmanager.issuerRef.name }}
+      name: {{ .Values.stardog.certificateManager.issuerRef.name | default .Values.launchpad.certificateManager.issuerRef.name }}
     solvers:
     - http01:
         ingress:

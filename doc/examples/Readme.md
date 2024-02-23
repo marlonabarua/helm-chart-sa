@@ -40,3 +40,11 @@ helm install -n stardog-ns -f ./doc/examples/values-cluster-stardog-launchpad-az
 
 ### Remove helm chart intallation.
 helm delete sd-test  --namespace stardog-ns
+
+### Create roles to stardog.
+Add prmisions to the cluster 
+kubectl exec -it sd-test-stardog-0 -- stardog-admin role add writer
+kubectl exec -it sd-test-stardog-0 -- stardog-admin role grant -a "write" -o "*:*" writer
+
+kubectl exec -it sd-test-stardog-0 -- stardog-admin role add reader
+kubectl exec -it sd-test-stardog-0 -- stardog-admin role grant -a "read" -o "*:*" reader

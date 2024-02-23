@@ -14,7 +14,7 @@ launchpad:
   tls: 
     enabled: true
 
-  certmanager: 
+  certificateManager: 
     enabled: true
     email: "marlon.garcia@stardog.com"
     commonName: "launchpad.lp.test.sd-testlab.com" 

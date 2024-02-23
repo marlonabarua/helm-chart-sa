@@ -12,8 +12,8 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
   annotations:
-  {{ if .Values.stardog.certmanager.enabled }}
-    cert-manager.io/cluster-issuer: {{ .Values.stardog.certmanager.issuerRef.name }}
+  {{ if .Values.stardog.certificateManager.enabled }}
+    cert-manager.io/cluster-issuer: {{ .Values.stardog.certificateManager.issuerRef.name }}
   {{ end }}
 {{- with .Values.stardog.ingress.annotations }}
 {{ toYaml . | indent 4 }}
@@ -55,8 +55,8 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
   annotations:
-  {{- if .Values.stardog.certmanager.enabled }}
-    cert-manager.io/cluster-issuer: {{ .Values.stardog.certmanager.issuerRef.name }}
+  {{- if .Values.stardog.certificateManager.enabled }}
+    cert-manager.io/cluster-issuer: {{ .Values.stardog.certificateManager.issuerRef.name }}
   {{- end }}
 {{- with .Values.stardog.ingress.annotations }}
 {{ toYaml . | indent 4 }}
@@ -98,8 +98,8 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
   annotations:
-  {{- if .Values.launchpad.certmanager.enabled }}
-    cert-manager.io/cluster-issuer: {{ .Values.launchpad.certmanager.issuerRef.name }}
+  {{- if .Values.launchpad.certificateManager.enabled }}
+    cert-manager.io/cluster-issuer: {{ .Values.launchpad.certificateManager.issuerRef.name }}
   {{- end }}
 {{- with .Values.launchpad.ingress.annotations }}
 {{ toYaml . | indent 4 }}

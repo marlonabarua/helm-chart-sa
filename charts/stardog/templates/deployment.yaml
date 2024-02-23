@@ -38,6 +38,26 @@ spec:
       {{- end }}
       {{- end }}
       serviceAccountName: {{ include "launchpad.serviceAccountName" . }}
+      initContainers:
+      - name: generate-ssh-key
+        image: alpine
+        resources:
+          requests:
+            memory: 250Mi
+            cpu: 300m
+          limits:
+            memory: 250Mi
+            cpu: 300m
+        command:
+        - /bin/sh
+        - -c
+        - |
+            apk add openssh;
+            ssh-keygen -t rsa -m PEM -b 2048 -f /etc/ssh-keys/jwk/jwtRS256.key -N '';
+            chmod 554 /etc/ssh-keys/jwk/jwtRS256.key*;
+        volumeMounts:
+          - name: ssh-key-jwk-vol
+            mountPath: /etc/ssh-keys/jwk
       containers:
       - name: {{ .Chart.Name }}-launchpad
         image: "{{ .Values.launchpad.image.registry }}/{{ .Values.launchpad.image.repository }}:{{ .Values.launchpad.image.tag }}"
@@ -51,6 +71,9 @@ spec:
         {{- if .Values.launchpad.tls.internal.enabled }}
         volumeMounts:
         - name: jwk-vol
+          mountPath: /jwk-old
+          readOnly: true
+        - name: ssh-key-jwk-vol
           mountPath: /jwk
           readOnly: true
         {{- end }}
@@ -175,6 +198,8 @@ spec:
 {{- toYaml .Values.launchpad.resources | nindent 12 }}
 {{- if .Values.launchpad.tls.internal.enabled }}
       volumes:
+        - name: ssh-key-jwk-vol
+          emptyDir: {}
         - name: jwk-vol
           secret:
             secretName: {{ .Values.launchpad.tls.internal.secretName }}

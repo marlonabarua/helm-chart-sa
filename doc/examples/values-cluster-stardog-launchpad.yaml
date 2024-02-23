@@ -15,7 +15,7 @@ stardog:
       enabled: true
      
     
-  certmanager: 
+  certificateManager: 
     enabled: true
     email: "marlon.garcia@stardog.com"
     commonName: "sparql.test.sd-testlab.com" 
@@ -64,7 +64,7 @@ stardog:
     logging.audit.rotation.interval=7d
     storage.starrocks.enable_snmp=true
     storage.statistics.timing=true
-    jwt.sign.with.password=false
+    jwt.disable=false
 
 
 launchpad:
@@ -80,7 +80,7 @@ launchpad:
     enabled: true
 
 
-  certmanager: 
+  certificateManager: 
     enabled: true
     email: "marlon.garcia@stardog.com"
     commonName: "launchpad.test.sd-testlab.com" 

@@ -15,7 +15,7 @@ stardog:
       enabled: true
      
     
-  certmanager: 
+  certificateManager: 
     enabled: true
     email: "marlon.garcia@stardog.com"
     commonName: "sparql.test.sd-testlab.com" 
@@ -36,7 +36,9 @@ stardog:
             - azure.microsoft.com/ff24ca66-bbaa-4def-8acf-43f2635ada42
           algorithms:
             RS256:
-              keyUrl: https://launchpad.test.sd-testlab.com/.well-known/jwks.json
+              keyUrl: http://sd-test-stardog-launchpad.stardog-ns.svc.cluster.local:8080/.well-known/jwks.json
+# if is self signed certification acces to the launchpad key using the cluster service like
+#              http:<service-name>.<namespace>.svc.cluster.local:<service-port>
 
   ingress:
     enabled: true
@@ -80,7 +82,7 @@ stardog:
     logging.audit.rotation.interval=7d
     storage.starrocks.enable_snmp=true
     storage.statistics.timing=true
-    jwt.sign.with.password=false
+    jwt.disable=false
 
 
 launchpad:
@@ -97,7 +99,7 @@ launchpad:
     internal:
       enabled: true
 
-  certmanager: 
+  certificateManager: 
     enabled: true
     email: "marlon.garcia@stardog.com"
     commonName: "launchpad.test.sd-testlab.com" 

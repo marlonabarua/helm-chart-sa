@@ -131,7 +131,7 @@ stardog:
       enabled: false
       secretName: "tls-secret-internal-stardog"
 
-  certmanager: 
+  certificateManager: 
     enabled: false
     duration: 2160h # 90d
     renewBefore: 360h # 15d
@@ -192,7 +192,7 @@ launchpad:
       secretName: "tls-secret-internal-stardog"
 
 
-  certmanager: 
+  certificateManager: 
     enabled: false
     duration: 2160h # 90d
     renewBefore: 360h # 15d
@@ -230,7 +230,7 @@ launchpad:
     name: ""
 
   nodeSelector: {}
-  affinity: []
+  affinity: {}
   tolerations: []
   #  - key: key1
   #    value: value1

@@ -1,4 +1,10 @@
-Thank you for installing {{ .Chart.Name }}!
+CHART NAME: {{ .Chart.Name }}
+CHART VERSION: {{ .Chart.Version }}
+APP VERSION: {{ .Chart.AppVersion }}
+
+** Please be patient while the chart is being deployed **
+
+
 
 {{ print "Your application is now deployed and can be accessed via: "}}
 
@@ -28,4 +34,5 @@ Launchpad Endpoint: {{ printf "%s://%s " (include "launchpad.protocol" .) (inclu
 {{- end }}
 {{- end }}
 
+Thank you for installing {{ .Chart.Name }}!
 For more information, visit https://stardog.com.

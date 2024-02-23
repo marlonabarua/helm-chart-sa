@@ -1,4 +1,4 @@
-{{- if and .Values.launchpad.enabled .Values.launchpad.certmanager.enabled -}}
+{{- if and .Values.launchpad.enabled .Values.launchpad.certificateManager.enabled -}}
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -12,21 +12,26 @@ metadata:
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
 spec:
   secretName: {{ .Values.launchpad.tls.internal.secretName }}
-  duration: {{ .Values.launchpad.certmanager.duration | quote }}
-  renewBefore: {{ .Values.launchpad.certmanager.renewBefore | quote }}
-  {{- if or (not .Values.launchpad.certmanager.commonName) (eq (len .Values.launchpad.certmanager.commonName) 0) }} 
+  duration: {{ .Values.launchpad.certificateManager.duration | quote }}
+  renewBefore: {{ .Values.launchpad.certificateManager.renewBefore | quote }}
+  {{- if or (not .Values.launchpad.certificateManager.commonName) (eq (len .Values.launchpad.certificateManager.commonName) 0) }} 
   commonName: {{ (include "launchpad.host" .) | quote }}
+  isCA: false
+  privateKey: 
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2408
   dnsNames: 
   - {{ (include "launchpad.host" .) | quote }}
   {{- else }}
-  commonName: {{ .Values.launchpad.certmanager.commonName }}
-  dnsNames: {{ .Values.launchpad.certmanager.dnsNames }}
+  commonName: {{ .Values.launchpad.certificateManager.commonName }}
+  dnsNames: {{ .Values.launchpad.certificateManager.dnsNames }}
   {{- end }}
   issuerRef:
-    name: {{ .Values.launchpad.certmanager.issuerRef.name }} 
+    name: {{ .Values.launchpad.certificateManager.issuerRef.name }} 
     kind: ClusterIssuer
 {{- end}}
-{{- if and .Values.stardog.enabled .Values.stardog.certmanager.enabled }}
+{{- if and .Values.stardog.enabled .Values.stardog.certificateManager.enabled }}
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -40,17 +45,22 @@ metadata:
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
 spec:
   secretName: {{ .Values.stardog.tls.internal.secretName }}
-  duration: {{ .Values.stardog.certmanager.duration | quote }}
-  renewBefore: {{ .Values.stardog.certmanager.renewBefore | quote }}
-  {{- if or (not .Values.stardog.certmanager.commonName) (eq (len .Values.stardog.certmanager.commonName) 0) }}
+  duration: {{ .Values.stardog.certificateManager.duration | quote }}
+  renewBefore: {{ .Values.stardog.certificateManager.renewBefore | quote }}
+  {{- if or (not .Values.stardog.certificateManager.commonName) (eq (len .Values.stardog.certificateManager.commonName) 0) }}
   commonName: {{ (include "stardog.host" .) | quote }}
+  isCA: false
+  privateKey: 
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2408
   dnsNames:
   - {{ (include "stardog.host" . ) | quote }}
   {{- else }}
-  commonName: {{ .Values.stardog.certmanager.commonName }}
-  dnsNames: {{ .Values.stardog.certmanager.dnsNames }}
+  commonName: {{ .Values.stardog.certificateManager.commonName }}
+  dnsNames: {{ .Values.stardog.certificateManager.dnsNames }}
   {{- end }}
   issuerRef:
-    name: {{ .Values.stardog.certmanager.issuerRef.name }}
+    name: {{ .Values.stardog.certificateManager.issuerRef.name }}
     kind: ClusterIssuer
 {{- end}}
