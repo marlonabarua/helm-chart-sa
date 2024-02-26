@@ -99,7 +99,7 @@ stardog:
     runAsNonRoot: true
     runAsUser: 1000
     runAsGroup: 1000
-    fsGroup: 1000
+    #fsGroup: 1000
 
   log4jConfig:
     override: false
@@ -140,6 +140,10 @@ stardog:
     dnsNames: []
     issuerRef:
       name: letsencrypt-staging # or letsencrypt-production for the production issuer
+  
+  route:
+    enabled: false
+    domain: ""
 
   ingress:
     enabled: false
@@ -201,6 +205,10 @@ launchpad:
     dnsNames: []
     issuerRef:
       name: letsencrypt-staging # or letsencrypt-production for the production issuer
+
+  route:
+    enabled: false
+    domain: ""
 
   ingress:
     enabled: false

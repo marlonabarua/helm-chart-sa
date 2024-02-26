@@ -38,6 +38,7 @@ spec:
       {{- end }}
       {{- end }}
       serviceAccountName: {{ include "launchpad.serviceAccountName" . }}
+      {{- if .Values.launchpad.tls.internal.enabled }}
       initContainers:
       - name: generate-ssh-key
         image: alpine
@@ -58,6 +59,7 @@ spec:
         volumeMounts:
           - name: ssh-key-jwk-vol
             mountPath: /etc/ssh-keys/jwk
+      {{- end }}
       containers:
       - name: {{ .Chart.Name }}-launchpad
         image: "{{ .Values.launchpad.image.registry }}/{{ .Values.launchpad.image.repository }}:{{ .Values.launchpad.image.tag }}"
@@ -84,12 +86,27 @@ spec:
             value: {{ .Values.launchpad.env.SECURE | quote }}
           - name: FRIENDLY_NAME
             value: {{ default "Stardog Applications" .Values.launchpad.env.FRIENDLY_NAME | quote }}
+          {{- if eq (len .Values.launchpad.env.BASE_URL) 0 }}
           - name: BASE_URL
-            value: {{ printf "%s://%s " (include "launchpad.protocol" .) (include "launchpad.host" . ) }}
+            value: {{ printf "%s://%s " (include "launchpad.protocol" .) (include "launchpad.host" . ) }} 
+          {{- else }}
+          - name: BASE_URL
+            value: {{ .Values.launchpad.env.BASE_URL | quote }}
+          {{- end }}
+          {{- if eq (len .Values.launchpad.env.STARDOG_INTERNAL_ENDPOINT) 0 }}
           - name: STARDOG_INTERNAL_ENDPOINT
-            value: {{ printf "http://%s:%d" (include "stardog.fullname" .) (.Values.stardog.ports.server | int) }}
+            value: {{ printf "http://%s:%d" (include "stardog.fullname" .) (.Values.stardog.ports.server | int) }} 
+          {{- else }}
+          - name: STARDOG_INTERNAL_ENDPOINT
+            value: {{ .Values.launchpad.env.STARDOG_INTERNAL_ENDPOINT | quote }}
+          {{- end }}
+          {{- if eq (len .Values.launchpad.env.STARDOG_EXTERNAL_ENDPOINT) 0 }}
           - name: STARDOG_EXTERNAL_ENDPOINT
             value: {{ printf "%s://%s " (include "stardog.protocol" .) (include "stardog.host" . ) }} 
+          {{- else }}
+          - name: STARDOG_EXTERNAL_ENDPOINT
+            value: {{ .Values.launchpad.env.STARDOG_EXTERNAL_ENDPOINT | quote }}
+          {{- end }}
           {{- if or .Values.launchpad.env.JWK_LOCATION (gt (len .Values.launchpad.env.JWK_LOCATION) 0) }} 
           - name: JWK_LOCATION
             value: {{ .Values.launchpad.env.JWK_LOCATION | quote }}

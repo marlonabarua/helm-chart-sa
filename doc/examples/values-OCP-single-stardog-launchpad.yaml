@@ -1,0 +1,85 @@
+
+stardog:
+  enabled: true
+
+  resources:
+    requests:
+      cpu: 2
+      memory: 3Gi
+    limits:
+      cpu: 2
+      memory: 4Gi
+
+# Java Virtual Machine memory parameters to pass to stardog.
+  jvm:
+    minHeap: 2g
+    maxHeap: 2g
+    directMem: 4g
+
+  # Additional Java Virtual Machine arguments to pass to stardog
+  javaArgs: ""
+
+  image:
+    registry: stardog.azurecr.io
+    repository: sa-lab-stardog/stardog
+    tag: latest
+    username: helm-stardog
+    password: "uhdd7/iwy9nHf9b8mDWWHx0JsNsyTVh6d0h/Zl9kAz+ACRBtLFVf"
+
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001020001
+    runAsGroup: 1001020001
+
+  route:
+    enabled: true
+    domain: "apps.test-openshift.7qmk.p1.openshiftapps.com"
+
+  persistence:
+    size: 50Gi
+      
+  stardogProperties: |
+    security.named.graphs=true
+    sql.server.enabled=true
+    query.all.graphs=true
+    spatial.use.jts=true
+    metrics.reporter=jmx
+    metrics.jvm.enabled=true
+    metrics.jmx.remote.access=true
+    query.timeout=1h
+    logging.slow_query.enabled=true
+    logging.slow_query.time=15m
+    logging.slow_query.type=text
+    logging.slow_query.rotation.type=time
+    logging.slow_query.rotation.interval=7d
+    logging.audit.enabled=true
+    logging.audit.type=binary
+    logging.audit.rotation.type=time
+    logging.audit.rotation.interval=7d
+    storage.starrocks.enable_snmp=true
+    storage.statistics.timing=true
+
+launchpad:
+  enabled: true
+  image:
+    registry: stardog.azurecr.io
+    repository: sa-lab-stardog/launchpad
+    tag: latest
+    username: helm-stardog
+    password: "uhdd7/iwy9nHf9b8mDWWHx0JsNsyTVh6d0h/Zl9kAz+ACRBtLFVf"
+  
+  route:
+    enabled: true
+    domain: "apps.test-openshift.7qmk.p1.openshiftapps.com"
+
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001020001
+    runAsGroup: 1001020001
+
+  env: 
+    FRIENDLY_NAME: "Stardog - National Geospatial-Intelligence Agency (NGA)"
+    BASE_URL: "http://launchpad.stardog-nga-stardog.apps.test-openshift.7qmk.p1.openshiftapps.com"
+    STARDOG_EXTERNAL_ENDPOINT: "http://sparql.stardog-nga-stardog.apps.test-openshift.7qmk.p1.openshiftapps.com"
+
+  

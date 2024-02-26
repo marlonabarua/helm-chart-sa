@@ -4,8 +4,6 @@ APP VERSION: {{ .Chart.AppVersion }}
 
 ** Please be patient while the chart is being deployed **
 
-
-
 {{ print "Your application is now deployed and can be accessed via: "}}
 
 {{- if .Values.stardog.ingress.enabled }}
@@ -14,20 +12,36 @@ BI Ennpoint: {{ printf "bi.%s" .Values.stardog.ingress.url }}:{{ .Values.stardog
 Launchpad Endpoint: {{ printf "%s://%s " (include "launchpad.protocol" .) (include "launchpad.host" . ) }}
 {{- else }}
 {{- if eq .Values.stardog.service.type "ClusterIP" }}
+
+  {{- if or .Values.stardog.route.enabled .Values.launchpad.route.enabled }}
+  Use the url to access to Stardog and Launchpad.:
+    {{- if and .Values.stardog.enabled .Values.stardog.route.enabled }}
+    Stardog Endpoint: sparql.{{ include "stardog.fullname" . }}.{{ .Values.stardog.route.domain }}
+    {{- end }}
+
+    {{- if and .Values.launchpad.enabled .Values.launchpad.route.enabled }}
+    Launchpad endpoint: launchpad.{{ include "stardog.fullname" . }}.{{ .Values.launchpad.route.domain }} 
+    {{- end }}
+  {{- else }}
+
   Use kubectl to port-forward or proxy to your pod:
+
   {{- if .Values.stardog.enabled }}
   kubectl port-forward svc/{{ include "stardog.fullname" . }} 5820:5820
   {{- end }}
   {{- if .Values.launchpad.enabled }}
-  kubectl port-forward svc/{{ include "stardog.fullname" . }}-launchpad 8080:8080
+  kubectl port-forward svc/{{ include "stardog.fullname" . }}-launchpad 80:80
+  {{- end }}
   {{- end }}
 {{- else if eq .Values.stardog.service.type "LoadBalancer" }}
   Access your application via the load balancer's IP:
+  
   {{- if .Values.stardog.enabled }}
   kubectl get svc {{ include "stardog.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
   {{- end }}
 {{- else if eq .Values.stardog.service.type "NodePort" }}
   Access your application via any cluster node IP at port:
+
   {{- if .Values.stardog.enable }}
   kubectl get svc {{ include "stardog.fullname" . }} -o jsonpath='{.spec.ports[0].nodePort}'
   {{- end }}

@@ -1,0 +1,44 @@
+{{- if and .Values.launchpad.enabled .Values.launchpad.route.enabled }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "stardog.fullname" . }}-launchpad
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "stardog.fullname" . }}-launchpad
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+spec:
+  host: launchpad.{{ include "stardog.fullname" . }}.{{ .Values.launchpad.route.domain }}
+  to:
+    kind: Service
+    name: {{ include "stardog.fullname" . }}-launchpad
+  port:
+    targetPort: http
+{{- end }}
+
+{{- if and .Values.stardog.enabled .Values.stardog.route.enabled }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "stardog.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "stardog.fullname" . }}
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+spec:
+  host:  sparql.{{ include "stardog.fullname" . }}.{{ .Values.stardog.route.domain }}
+  to:
+    kind: Service
+    name: {{ include "stardog.fullname" . }}
+  port:
+    targetPort: server
+
+{{- end }}

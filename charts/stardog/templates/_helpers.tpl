@@ -74,7 +74,7 @@ Create launchpad host
 {{- printf "launchpad.%s" .Values.launchpad.ingress.url }}
 {{- else }}
 {{- if or (not .Values.launchpad.env.BASE_URL) (eq (len .Values.launchpad.env.BASE_URL) 0) }} 
-{{- printf "%s-launchpad:%d" (include "stardog.fullname" .) (.Values.launchpad.service.port |int ) }}
+{{- printf "%s-launchpad:80" (include "stardog.fullname" .) }}
 {{- else }}
 {{- printf "%s" .Values.launchpad.env.BASE_URL }}
 {{- end }}

@@ -118,7 +118,7 @@ spec:
               service:
                 name: {{ include "stardog.fullname" . }}-launchpad
                 port:
-                  number: {{ .Values.launchpad.service.port }}
+                  number: 80
   {{- if .Values.launchpad.ingress.tls.enabled }}
   tls:
     - hosts:
